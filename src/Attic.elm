@@ -7,14 +7,21 @@ import Html.Attributes exposing (..)
 
 type alias AtticSymbols = List (String, String)
 
+big1 = BigInt.fromInt 1
+big2 = BigInt.fromInt 2
+big31 = BigInt.fromInt 31
+intMax = BigInt.sub (BigInt.pow big2 big31) big1
+
 toAttic : AtticSymbols -> BigInt.BigInt -> Maybe (Html msg)
 toAttic ss num =
-    case String.toInt (BigInt.toString num) of
-        Nothing -> Nothing
-        Just n ->
+    let convFromInt n =
             let f ts = String.join "" ts |> text in
             convert ss (explodeIntoDigits n |> List.reverse) []
-            |> Maybe.map f
+            |> Maybe.map f in
+    if BigInt.gt num intMax
+    then Nothing
+    else String.toInt (BigInt.toString num)
+        |> Maybe.andThen convFromInt
 
 convert ss ds acc =
     case (ss, ds) of
