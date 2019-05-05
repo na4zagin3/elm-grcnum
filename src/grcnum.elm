@@ -1,3 +1,4 @@
+import Attic
 import Browser
 import BigInt
 import Ionian
@@ -110,12 +111,20 @@ viewNumTable n =
                     case f np of
                         (c, False) -> row [text l] [c]
                         (c, True) -> row [text l, text " (extended)"] [c] in
+    let atticRow l f =
+            case n of
+                Nothing -> row [text l] [text ""]
+                Just np ->
+                    case f np of
+                        Nothing -> row [text l] [text "too big"]
+                        Just c -> row [text l] [c] in
     let body =
             [ tr [] orig
             , tr [] (ionianRowCommon "common" Ionian.toMyriads)
             , tr [] (ionianRow "Diophantus" Ionian.toDiophantus)
             , tr [] (ionianRow "Aristarchus" Ionian.toAristarchus)
             , tr [] (ionianRow "Apollonius" Ionian.toApollonius)
+            , tr [] (atticRow "Attic" (Attic.toAttic Attic.generalSymbols))
             ] in
     table [style "width" "100%"]
         [ tbody [] body
