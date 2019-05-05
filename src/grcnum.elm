@@ -144,9 +144,14 @@ viewMyriad : Html msg -> Html msg -> Html msg
 viewMyriad m u =
     span [ style "display" "inline-flex"
          , style "flex-direction" "column-reverse"
-         ] [ span [ style "text-align" "center" ] [ m ]
-           , span [ style "text-align" "center"
-                  , style "font-size" "smaller" ] [ u ]
+         ] [ span
+             [ style "text-align" "center"
+             , style "line-height" "1em"
+             ] [ m ]
+           , span
+                 [ style "text-align" "center"
+                 , style "line-height" "1em"
+                 , style "font-size" "smaller" ] [ u ]
            ]
 
 viewNumberMyriadsIsExtended : BigInt.BigInt -> Bool
