@@ -143,6 +143,7 @@ viewNumTable n =
 
 
 zero = BigInt.fromInt 0
+sixty = BigInt.fromInt 60
 
 viewSexagesimal : BigInt.BigInt -> Html msg
 viewSexagesimal num =
@@ -151,5 +152,6 @@ viewSexagesimal num =
     let ms = if BigInt.gt m zero then [BigInt.toString m, "′"] else [] in
     let ss = if BigInt.gt s zero then [BigInt.toString s, "″"] else [] in
     List.concat [ds, ms, ss]
+    |> (if BigInt.gte num sixty then (\ x -> x ++ [" = ", BigInt.toString num, "″"]) else identity)
     |> String.join ""
     |> text
