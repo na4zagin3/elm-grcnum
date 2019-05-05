@@ -121,7 +121,7 @@ viewNumTable n =
     let body =
             [ tr [] orig
             , tr [] (atticRow "Attic" (Attic.toAttic Attic.generalSymbols))
-            , tr [] (ionianRowCommon "Common Ionic" Ionian.toMyriads)
+            , tr [] (ionianRowCommon "Common Ionian" Ionian.toMyriads)
             , tr [] (ionianRow "Diophantus" Ionian.toDiophantus)
             , tr [] (ionianRow "Aristarchus" Ionian.toAristarchus)
             , tr [] (ionianRow "Apollonius" Ionian.toApollonius)
