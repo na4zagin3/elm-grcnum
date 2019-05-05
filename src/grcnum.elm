@@ -1,10 +1,12 @@
 import Attic
 import Browser
 import BigInt
+import Digits
 import Ionian
 import Html exposing (Html, Attribute, button, div, input, table, tbody, td, tr, text, span, wbr)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
+import SexagesimalTriple
 
 
 
@@ -97,6 +99,12 @@ viewNumTable n =
             [ td [style "width" "10em"] l
             , td [style "min-height" "2.5em"] c
             ] in
+    let calcRow l f =
+            case n of
+                Nothing -> row [text l] [text ""]
+                Just np ->
+                    let (lext, cs) = f np in
+                    row (text l :: lext) cs in
     let ionianRowCommon l f =
             case n of
                 Nothing -> row [text l] [text ""]
@@ -111,7 +119,7 @@ viewNumTable n =
                     case f np of
                         (c, False) -> row [text l] [c]
                         (c, True) -> row [text l, text " (extended)"] [c] in
-    let atticRow l f =
+    let maybeRow l f =
             case n of
                 Nothing -> row [text l] [text ""]
                 Just np ->
@@ -120,12 +128,28 @@ viewNumTable n =
                         Just c -> row [text l] [c] in
     let body =
             [ tr [] orig
-            , tr [] (atticRow "Attic" (Attic.toAttic Attic.generalSymbols))
+            , tr [] (maybeRow "Attic" (Attic.toAttic Attic.generalSymbols))
             , tr [] (ionianRowCommon "Common Ionian" Ionian.toMyriads)
             , tr [] (ionianRow "Diophantus" Ionian.toDiophantus)
             , tr [] (ionianRow "Aristarchus" Ionian.toAristarchus)
             , tr [] (ionianRow "Apollonius" Ionian.toApollonius)
+            , tr [] (calcRow "Sexagesimal triple (in seconds)" (\np -> ([], [viewSexagesimal np])))
+            , tr [] (maybeRow "Sexagesimal (EXPERIMENTAL)" (SexagesimalTriple.secondsToCommon))
+            , tr [] (maybeRow "Sexagesimal Ptolemy (EXPERIMENTAL)" (SexagesimalTriple.secondsToPtolemy))
             ] in
     table [style "width" "100%"]
         [ tbody [] body
         ]
+
+
+zero = BigInt.fromInt 0
+
+viewSexagesimal : BigInt.BigInt -> Html msg
+viewSexagesimal num =
+    let (d, m, s) = Digits.explodeIntoSexagesimalTriple num in
+    let ds = if BigInt.gt d zero then [BigInt.toString d, "°"] else [] in
+    let ms = if BigInt.gt m zero then [BigInt.toString m, "′"] else [] in
+    let ss = if BigInt.gt s zero then [BigInt.toString s, "″"] else [] in
+    List.concat [ds, ms, ss]
+    |> String.join ""
+    |> text
