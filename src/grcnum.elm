@@ -120,11 +120,11 @@ viewNumTable n =
                         Just c -> row [text l] [c] in
     let body =
             [ tr [] orig
-            , tr [] (ionianRowCommon "common" Ionian.toMyriads)
+            , tr [] (atticRow "Attic" (Attic.toAttic Attic.generalSymbols))
+            , tr [] (ionianRowCommon "Common Ionic" Ionian.toMyriads)
             , tr [] (ionianRow "Diophantus" Ionian.toDiophantus)
             , tr [] (ionianRow "Aristarchus" Ionian.toAristarchus)
             , tr [] (ionianRow "Apollonius" Ionian.toApollonius)
-            , tr [] (atticRow "Attic" (Attic.toAttic Attic.generalSymbols))
             ] in
     table [style "width" "100%"]
         [ tbody [] body
