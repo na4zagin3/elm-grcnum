@@ -3,7 +3,7 @@ import Browser
 import BigInt
 import Digits
 import Ionian
-import Html exposing (Html, Attribute, button, div, input, table, tbody, td, tr, text, span, wbr)
+import Html exposing (Html, Attribute, a, button, div, input, table, tbody, td, tr, text, span, wbr)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import SexagesimalTriple
@@ -99,44 +99,45 @@ viewNumTable n =
             [ td [style "width" "10em"] l
             , td [style "min-height" "2.5em"] c
             ] in
+    let label h l = a [href h] [text l] in
     let calcRow l f =
             case n of
-                Nothing -> row [text l] [text ""]
+                Nothing -> row [l] [text ""]
                 Just np ->
                     let (lext, cs) = f np in
-                    row (text l :: lext) cs in
+                    row (l :: lext) cs in
     let ionianRowCommon l f =
             case n of
-                Nothing -> row [text l] [text ""]
+                Nothing -> row [l] [text ""]
                 Just np ->
                     case f np of
-                        (c, False) -> row [text l] [c]
-                        (c, True) -> row [text l] [text "too big"] in
+                        (c, False) -> row [l] [c]
+                        (c, True) -> row [l] [text "too big"] in
     let ionianRow l f =
             case n of
-                Nothing -> row [text l] [text ""]
+                Nothing -> row [l] [text ""]
                 Just np ->
                     case f np of
-                        (c, False) -> row [text l] [c]
-                        (c, True) -> row [text l, text " (extended)"] [c] in
+                        (c, False) -> row [l] [c]
+                        (c, True) -> row [l, text " (extended)"] [c] in
     let maybeRow l f =
             case n of
-                Nothing -> row [text l] [text ""]
+                Nothing -> row [l] [text ""]
                 Just np ->
                     case f np of
-                        Nothing -> row [text l] [text "too big"]
-                        Just c -> row [text l] [c] in
+                        Nothing -> row [l] [text "too big"]
+                        Just c -> row [l] [c] in
     let body =
             [ tr [] orig
-            , tr [] (maybeRow "Attic" (Attic.toAttic Attic.generalSymbols))
-            , tr [] (ionianRowCommon "Common Ionian" Ionian.toMyriads)
-            , tr [] (ionianRow "Diophantus" Ionian.toDiophantus)
-            , tr [] (ionianRow "Aristarchus" Ionian.toAristarchus)
-            , tr [] (ionianRow "Apollonius" Ionian.toApollonius)
-            , tr [] (ionianRow "Modified Apollonius" Ionian.toModifiedApollonius)
-            , tr [] (calcRow "Sexagesimal triple (in seconds)" (\np -> ([], [viewSexagesimal np])))
-            , tr [] (maybeRow "Sexagesimal (EXPERIMENTAL)" (SexagesimalTriple.secondsToCommon))
-            , tr [] (maybeRow "Sexagesimal Ptolemy (EXPERIMENTAL)" (SexagesimalTriple.secondsToPtolemy))
+            , tr [] (maybeRow (label "#attic" "Attic") (Attic.toAttic Attic.generalSymbols))
+            , tr [] (ionianRowCommon (label "#common-ionian" "Common Ionian") Ionian.toMyriads)
+            , tr [] (ionianRow (label "#diophantus" "Diophantus") Ionian.toDiophantus)
+            , tr [] (ionianRow (label "#aristarchus" "Aristarchus") Ionian.toAristarchus)
+            , tr [] (ionianRow (label "#apollonius" "Apollonius") Ionian.toApollonius)
+            , tr [] (ionianRow (label "#modified-apollonius" "Modified Apollonius") Ionian.toModifiedApollonius)
+            , tr [] (calcRow (text "Sexagesimal triple (in seconds)") (\np -> ([], [viewSexagesimal np])))
+            , tr [] (maybeRow (label "#sexagesimal" "Sexagesimal (EXPERIMENTAL)") (SexagesimalTriple.secondsToCommon))
+            , tr [] (maybeRow (label "#sexagesimal-ptolemy" "Sexagesimal Ptolemy (EXPERIMENTAL)") (SexagesimalTriple.secondsToPtolemy))
             ] in
     table [style "width" "100%"]
         [ tbody [] body
