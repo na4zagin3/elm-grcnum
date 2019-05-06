@@ -32,24 +32,24 @@ toCommon (d, m, s) =
             else [ds, ms, ss] |> insertSpace |> Just in
     case (BigInt.compare d one, BigInt.compare m one, BigInt.compare s one) of
         (LT, LT, LT) -> text "" |> Just
-        (LT, LT, EQ) -> [deuteron, hexecostonF] |> insertSpace |> Just
+        (LT, LT, EQ) -> [deuteron, hexecoston, ss] |> insertSpace |> Just
         (LT, LT, GT) -> [deutera, hexecosta, ss] |> insertSpace |> Just
-        (LT, EQ, LT) -> [proton, hexecostonF] |> insertSpace |> Just
+        (LT, EQ, LT) -> [proton, hexecoston, ms] |> insertSpace |> Just
         (LT, GT, LT) -> [prota, hexecosta, ms] |> insertSpace |> Just
-        (LT, EQ, EQ) -> [proton, hexecoston, cai, deuteron, hexecostonF] |> insertSpace |> Just
-        (LT, EQ, GT) -> [proton, hexecoston, cai, deutera, ss] |> insertSpace |> Just
-        (LT, GT, EQ) -> [prota, hexecoston, ms, cai, deutera, ss] |> insertSpace |> Just
-        (LT, GT, GT) -> [prota, hexecoston, ms, cai, deutera, ss] |> insertSpace |> Just
+        (LT, EQ, EQ) -> [proton, hexecoston, ms, cai, deuteron, ss] |> insertSpace |> Just
+        (LT, EQ, GT) -> [proton, hexecoston, ms, cai, deutera, ss] |> insertSpace |> Just
+        (LT, GT, EQ) -> [prota, hexecosta, ms, cai, deuteron, ss] |> insertSpace |> Just
+        (LT, GT, GT) -> [prota, hexecosta, ms, cai, deutera, ss] |> insertSpace |> Just
         (EQ, LT, LT) -> [ds] |> insertSpace |> Just
         (GT, LT, LT) -> [ds] |> insertSpace |> Just
-        (EQ, LT, EQ) -> [moira, cai, deuteron, hexecostonF] |> insertSpace |> Just
-        (EQ, LT, GT) -> [moira, cai, deutera, hexecosta, ss] |> insertSpace |> Just
-        (GT, LT, EQ) -> [moirai, ds, cai, deuteron, hexecostonF] |> insertSpace |> Just
+        (EQ, LT, EQ) -> [moira, ds, cai, deuteron, hexecoston, ss] |> insertSpace |> Just
+        (EQ, LT, GT) -> [moira, ds, cai, deutera, hexecosta, ss] |> insertSpace |> Just
+        (GT, LT, EQ) -> [moirai, ds, cai, deuteron, hexecoston, ss] |> insertSpace |> Just
         (GT, LT, GT) -> [moirai, ds, cai, deutera, hexecosta, ss] |> insertSpace |> Just
-        (EQ, EQ, LT) -> [moira, cai, proton, hexecostonF] |> insertSpace |> Just
-        (EQ, GT, LT) -> [moira, cai, prota, hexecosta, ms] |> insertSpace |> Just
-        (GT, EQ, LT) -> [moirai, ds, cai, proton, hexecostonF] |> insertSpace |> Just
-        (GT, GT, LT) -> [moirai, ds, cai, prota, hexecosta, ms] |> insertSpace |> Just
+        (EQ, EQ, LT) -> [ds, ms] |> insertSpace |> Just
+        (EQ, GT, LT) -> [ds, ms] |> insertSpace |> Just
+        (GT, EQ, LT) -> [ds, ms] |> insertSpace |> Just
+        (GT, GT, LT) -> [ds, ms] |> insertSpace |> Just
         (EQ, EQ, EQ) -> triple
         (EQ, EQ, GT) -> triple
         (EQ, GT, EQ) -> triple
