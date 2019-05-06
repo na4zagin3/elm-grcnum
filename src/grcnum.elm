@@ -133,6 +133,7 @@ viewNumTable n =
             , tr [] (ionianRow "Diophantus" Ionian.toDiophantus)
             , tr [] (ionianRow "Aristarchus" Ionian.toAristarchus)
             , tr [] (ionianRow "Apollonius" Ionian.toApollonius)
+            , tr [] (ionianRow "Modified Apollonius" Ionian.toModifiedApollonius)
             , tr [] (calcRow "Sexagesimal triple (in seconds)" (\np -> ([], [viewSexagesimal np])))
             , tr [] (maybeRow "Sexagesimal (EXPERIMENTAL)" (SexagesimalTriple.secondsToCommon))
             , tr [] (maybeRow "Sexagesimal Ptolemy (EXPERIMENTAL)" (SexagesimalTriple.secondsToPtolemy))

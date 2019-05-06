@@ -1,7 +1,8 @@
 module Ionian exposing (toMyriads,
                             toDiophantus,
                             toAristarchus,
-                            toApollonius
+                            toApollonius,
+                            toModifiedApollonius
                        )
 
 import BigInt
@@ -69,37 +70,47 @@ toApolloniusIsExtended : Myriads -> Bool
 toApolloniusIsExtended m =
     List.length m >= 10000
 
-toApolloniusSeries : Html msg -> Bool -> Myriads -> Html msg
-toApolloniusSeries sep top =
+toApolloniusSeries : Html msg -> Html msg -> List (Html msg) -> Bool -> Myriads -> Html msg
+toApolloniusSeries sep mSymb monad top myriads =
     let decolateMyriad = if top then overLined else text in
     let f n d =
             case (n, d) of
                   (_, 0) -> Nothing
                   (0, _) ->
-                      convertSimple d
-                      |> decolateMyriad
+                      let c = convertSimple d |> decolateMyriad in
+                      span
+                        [style "white-space" "nowrap"]
+                        (if List.length myriads <= 1
+                         then [c]
+                         else monad ++ [c])
                       |> Just
                   (_, _) ->
-                      let m =
-                              BigInt.fromInt n
+                      let m = BigInt.fromInt n
                               |> explodeIntoMyriads
-                              |> toApolloniusSeries sep False
-                              |> stackMyriad (text myriadSymbol) in
+                              |> toApolloniusSeries sep mSymb monad False
+                              |> stackMyriad mSymb in
                       span [style "white-space" "nowrap"] [m, text myriadSeparator, convertSimple d |> decolateMyriad]
                       |> Just in
-    viewMyriads f sep
+    viewMyriads f sep myriads
 
 toApollonius : BigInt.BigInt -> (Html msg, Bool)
 toApollonius num =
     let m = explodeIntoMyriads num in
-    (toApolloniusSeries (text " καὶ ") True m
+    (toApolloniusSeries (text " καὶ ") (text smallMyriadSymbol) [stackMyriad (text smallMyriadSymbol) (text "ο"), text myriadSeparator] True m
+    , toApolloniusIsExtended m
+    )
+
+toModifiedApollonius : BigInt.BigInt -> (Html msg, Bool)
+toModifiedApollonius num =
+    let m = explodeIntoMyriads num in
+    (toApolloniusSeries (text " καὶ ") (text myriadSymbol) [stackMyriad (text smallMyriadSymbol) (text "ο"), text myriadSeparator] True m
     , toApolloniusIsExtended m
     )
 
 toApolloniusWithComma : BigInt.BigInt -> (Html msg, Bool)
 toApolloniusWithComma num =
     let m = explodeIntoMyriads num in
-    (toApolloniusSeries (text ",") True m
+    (toApolloniusSeries (text ",") (text smallMyriadSymbol) [] True m
     , toApolloniusIsExtended m
     )
 
@@ -114,6 +125,7 @@ viewMyriads f sep ms =
 
 -- Converter
 myriadSymbol = "Μ"
+smallMyriadSymbol = "μ"
 myriadSeparator = "\u{2009}"
 keraia = "ʹ"
 gnls = "͵"
