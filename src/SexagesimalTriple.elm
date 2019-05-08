@@ -5,23 +5,22 @@ import BigInt
 import Digits exposing (..)
 import Dict
 import Ionian
-import Html exposing (Html, Attribute, button, div, input, table, tbody, td, tr, text, span, wbr)
-import Html.Attributes exposing (..)
+import Prim exposing (..)
 
 zero = BigInt.fromInt 0
 one = BigInt.fromInt 1
 
-secondsToCommon : BigInt.BigInt -> Maybe (Html msg)
+secondsToCommon : BigInt.BigInt -> Maybe (List Element)
 secondsToCommon n =
     Digits.explodeIntoSexagesimalTriple n
     |> toCommon
 
-secondsToPtolemy : BigInt.BigInt -> Maybe (Html msg)
+secondsToPtolemy : BigInt.BigInt -> Maybe (List Element)
 secondsToPtolemy n =
     Digits.explodeIntoSexagesimalTriple n
     |> toPtolemy
 
-toCommon : SexagesimalTriple -> Maybe (Html msg)
+toCommon : SexagesimalTriple -> Maybe (List Element)
 toCommon (d, m, s) =
     let (ds, dext) = Ionian.toMyriads d in
     let (ms, mext) = Ionian.toMyriads m in
@@ -31,7 +30,7 @@ toCommon (d, m, s) =
             then Nothing
             else [ds, ms, ss] |> insertSpace |> Just in
     case (BigInt.compare d one, BigInt.compare m one, BigInt.compare s one) of
-        (LT, LT, LT) -> text "" |> Just
+        (LT, LT, LT) -> [] |> Just
         (LT, LT, EQ) -> [deuteron, hexecoston, ss] |> insertSpace |> Just
         (LT, LT, GT) -> [deutera, hexecosta, ss] |> insertSpace |> Just
         (LT, EQ, LT) -> [proton, hexecoston, ms] |> insertSpace |> Just
@@ -59,7 +58,7 @@ toCommon (d, m, s) =
         (GT, GT, EQ) -> triple
         (GT, GT, GT) -> triple
 
-toPtolemy : SexagesimalTriple -> Maybe (Html msg)
+toPtolemy : SexagesimalTriple -> Maybe (List Element)
 toPtolemy (d, m, s) =
     let (ds, dext) = zeroToNothing d |> Maybe.map Ionian.toMyriads |> Maybe.withDefault (ousia, False) in
     let (ms, mext) = zeroToNothing m |> Maybe.map Ionian.toMyriads |> Maybe.withDefault (ousia, False) in
@@ -74,17 +73,19 @@ zeroToNothing n =
         EQ -> Nothing
         _ -> Just n
 
-insertSpace ns = List.intersperse (text " ") ns |> span []
-sp = text " "
-cai = text "καὶ"
-moira = text "μοῖρα"
-moirai = text "μοῖραι"
-proton = text "πρῶτον"
-prota = text "πρῶτα"
-deuteron = text "δεύτερον"
-deutera = text "δεύτερα"
-hexecoston = text "ἑξηκοστὸν"
-hexecosta = text "ἑξηκοστὰ"
-hexecostonF = text "ἑξηκοστόν"
-hexecostaF = text "ἑξηκοστά"
-ousia = text "Ο"
+insertSpace : List (List Element) -> List Element
+insertSpace ns = List.intersperse [Space] ns |> List.concat
+
+sp = [Space]
+cai = [Word "καὶ"]
+moira = [Word "μοῖρα"]
+moirai = [Word "μοῖραι"]
+proton = [Word "πρῶτον"]
+prota = [Word "πρῶτα"]
+deuteron = [Word "δεύτερον"]
+deutera = [Word "δεύτερα"]
+hexecoston = [Word "ἑξηκοστὸν"]
+hexecosta = [Word "ἑξηκοστὰ"]
+hexecostonF = [Word "ἑξηκοστόν"]
+hexecostaF = [Word "ἑξηκοστά"]
+ousia = [Word "Ο"]

@@ -2,8 +2,7 @@ module Attic exposing (AtticSymbols, toAttic, generalSymbols)
 
 import BigInt
 import Digits exposing (..)
-import Html exposing (Html, Attribute, button, div, input, table, tbody, td, tr, text, span, wbr)
-import Html.Attributes exposing (..)
+import Prim exposing (..)
 
 type alias AtticSymbols = List (String, String)
 
@@ -12,10 +11,10 @@ big2 = BigInt.fromInt 2
 big31 = BigInt.fromInt 31
 intMax = BigInt.sub (BigInt.pow big2 big31) big1
 
-toAttic : AtticSymbols -> BigInt.BigInt -> Maybe (Html msg)
+toAttic : AtticSymbols -> BigInt.BigInt -> Maybe (List Element)
 toAttic ss num =
     let convFromInt n =
-            let f ts = String.join "" ts |> text in
+            let f ts = [String.join "" ts |> Word] in
             convert ss (explodeIntoDigits n |> List.reverse) []
             |> Maybe.map f in
     if BigInt.gt num intMax

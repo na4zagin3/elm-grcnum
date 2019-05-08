@@ -7,6 +7,7 @@ import Html exposing (Html, Attribute, a, button, div, input, table, tbody, td, 
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import SexagesimalTriple
+import Prim exposing (..)
 
 
 
@@ -111,22 +112,22 @@ viewNumTable n =
                 Nothing -> row [l] [text ""]
                 Just np ->
                     case f np of
-                        (c, False) -> row [l] [c]
+                        (c, False) -> row [l] (viewElements c)
                         (c, True) -> row [l] [text "too big"] in
     let ionianRow l f =
             case n of
                 Nothing -> row [l] [text ""]
                 Just np ->
                     case f np of
-                        (c, False) -> row [l] [c]
-                        (c, True) -> row [l, text " (extended)"] [c] in
+                        (c, False) -> row [l] (viewElements c)
+                        (c, True) -> row [l, text " (extended)"] (viewElements c) in
     let maybeRow l f =
             case n of
                 Nothing -> row [l] [text ""]
                 Just np ->
                     case f np of
                         Nothing -> row [l] [text "too big"]
-                        Just c -> row [l] [c] in
+                        Just c -> row [l] (viewElements c) in
     let body =
             [ tr [] orig
             , tr [] (maybeRow (label "#attic" "Attic") (Attic.toAttic Attic.generalSymbols))

@@ -8,60 +8,37 @@ module Ionian exposing (toMyriads,
 import BigInt
 import Digits exposing (..)
 import Dict
-import Html exposing (Html, Attribute, button, div, input, table, tbody, td, tr, text, span, wbr)
-import Html.Attributes exposing (..)
+import Prim exposing (..)
 
 
-overLined : String -> Html msg
-overLined s = span
-                  [ style "text-decoration" "overline"
-                  , style "line-height" "2em"
-                  ]
-                  [ text s ]
-
-stackMyriad : Html msg -> Html msg -> Html msg
-stackMyriad m u =
-    span [ style "display" "inline-flex"
-         , style "flex-direction" "column-reverse"
-         ] [ span
-             [ style "text-align" "center"
-             , style "line-height" "1em"
-             ] [ m ]
-           , span
-                 [ style "text-align" "center"
-                 , style "line-height" "1em"
-                 , style "font-size" "smaller" ] [ u ]
-           ]
-
-toMyriads : BigInt.BigInt -> (Html msg, Bool)
+toMyriads : BigInt.BigInt -> (List Element, Bool)
 toMyriads num =
     let m = explodeIntoMyriads num in
     let f n d =
             let dn = convertSimple d in
             case (n, d) of
                   (_, 0) -> Nothing
-                  (0, _) -> dn |> overLined |> Just
+                  (0, _) -> [Overline [Word dn]] |> Just
                   (_, _) ->
-                      let ms = List.repeat n myriadSymbol |> String.join "" |> text in
-                      text dn
-                      |> stackMyriad ms
+                      let ms = List.repeat n myriadSymbol |> String.join "" |> Word in
+                      [Myriad [ms] [Word dn]]
                       |> Just in
-    ( viewMyriads f (text myriadSeparator) m
+    ( viewMyriads f [Word myriadSeparator] m
     , BigInt.gte num (BigInt.fromInt 100000000))
 
-toDiophantus : BigInt.BigInt -> (Html msg, Bool)
+toDiophantus : BigInt.BigInt -> (List Element, Bool)
 toDiophantus num =
     let m = explodeIntoMyriads num in
-    let f n d = convertSimple d |> overLined |> Just in
-    ( viewMyriads f (span [] [text ".", wbr [] []]) m
+    let f n d = [Overline [convertSimple d |> Word]] |> Just in
+    ( viewMyriads f [Word ".", WeakBreak] m
     , BigInt.gte num (BigInt.fromInt 100000000))
 
-toAristarchus : BigInt.BigInt -> (Html msg, Bool)
+toAristarchus : BigInt.BigInt -> (List Element, Bool)
 toAristarchus num =
     let m = explodeIntoMyriads num in
-    let f n d = convertSimple d |> overLined |> Just in
-    let sep = span [style "white-space" "nowrap"] [text (myriadSeparator ++ myriadSymbol ++ myriadSeparator), wbr [] []] in
-    (viewMyriads f sep m,
+    let f n d = [Overline [convertSimple d |> Word]] |> Just in
+    let sep2 = [NoBreak [Word (myriadSeparator ++ myriadSymbol ++ myriadSeparator)], WeakBreak] in
+    (viewMyriads f sep2 m,
     BigInt.gte num (BigInt.fromInt 100000000)
     || num == (BigInt.fromInt 10000) -- ToDo: Research
     )
@@ -70,58 +47,60 @@ toApolloniusIsExtended : Myriads -> Bool
 toApolloniusIsExtended m =
     List.length m >= 10000
 
-toApolloniusSeries : Html msg -> Html msg -> List (Html msg) -> Bool -> Myriads -> Html msg
+toApolloniusSeries : List Element -> List Element -> List Element -> Bool -> Myriads -> List Element
 toApolloniusSeries sep mSymb monad top myriads =
-    let decolateMyriad = if top then overLined else text in
+    let decolateMyriad m = if top then [Overline m] else m in
     let f n d =
             case (n, d) of
                   (_, 0) -> Nothing
                   (0, _) ->
-                      let c = convertSimple d |> decolateMyriad in
-                      span
-                        [style "white-space" "nowrap"]
-                        (if List.length myriads <= 1
-                         then [c]
-                         else monad ++ [c])
+                      let c = [convertSimple d |> Word] |> decolateMyriad in
+                      (if List.length myriads <= 1
+                        then c
+                        else monad ++ c)
+                      |> NoBreak
+                      |> List.singleton
                       |> Just
                   (_, _) ->
                       let m = BigInt.fromInt n
                               |> explodeIntoMyriads
                               |> toApolloniusSeries sep mSymb monad False
-                              |> stackMyriad mSymb in
-                      span [style "white-space" "nowrap"] [m, text myriadSeparator, convertSimple d |> decolateMyriad]
+                              |> Myriad mSymb in
+                      [m, Word myriadSeparator] ++ ([convertSimple d |> Word] |> decolateMyriad)
+                      |> NoBreak
+                      |> List.singleton
                       |> Just in
     viewMyriads f sep myriads
 
-toApollonius : BigInt.BigInt -> (Html msg, Bool)
+toApollonius : BigInt.BigInt -> (List Element, Bool)
 toApollonius num =
     let m = explodeIntoMyriads num in
-    (toApolloniusSeries (text " καὶ ") (text smallMyriadSymbol) [stackMyriad (text smallMyriadSymbol) (text "ο"), text myriadSeparator] True m
+    (toApolloniusSeries [Space, Word "καὶ", Space] [Word smallMyriadSymbol] [Myriad [Word smallMyriadSymbol] [Word "ο"], Word myriadSeparator] True m
     , toApolloniusIsExtended m
     )
 
-toModifiedApollonius : BigInt.BigInt -> (Html msg, Bool)
+toModifiedApollonius : BigInt.BigInt -> (List Element, Bool)
 toModifiedApollonius num =
     let m = explodeIntoMyriads num in
-    (toApolloniusSeries (text " καὶ ") (text myriadSymbol) [stackMyriad (text smallMyriadSymbol) (text "ο"), text myriadSeparator] True m
+    (toApolloniusSeries [Space, Word "καὶ", Space] [Word myriadSymbol] [Myriad [Word smallMyriadSymbol] [Word "ο"], Word myriadSeparator] True m
     , toApolloniusIsExtended m
     )
 
-toApolloniusWithComma : BigInt.BigInt -> (Html msg, Bool)
+toApolloniusWithComma : BigInt.BigInt -> (List Element, Bool)
 toApolloniusWithComma num =
     let m = explodeIntoMyriads num in
-    (toApolloniusSeries (text ",") (text smallMyriadSymbol) [] True m
+    (toApolloniusSeries [Word ","] [Word smallMyriadSymbol] [] True m
     , toApolloniusIsExtended m
     )
 
-viewMyriads : (Int -> Int -> Maybe (Html msg)) -> Html msg -> Myriads -> Html msg
+viewMyriads : (Int -> Int -> Maybe (List Element)) -> List Element -> Myriads -> List Element
 viewMyriads f sep ms =
     List.reverse ms
     |> List.indexedMap f
     |> List.reverse
     |> List.filterMap identity
     |> List.intersperse sep
-    |> span []
+    |> List.concat
 
 -- Converter
 myriadSymbol = "Μ"
