@@ -1,3 +1,5 @@
+module Main exposing (main, reactor)
+
 import Attic
 import Browser
 import BigInt
@@ -22,6 +24,16 @@ main =
       , view = view
       }
 
+reactor =
+  Browser.element
+      { init = \ () -> init reactorFlags
+      , update = update
+      , subscriptions = subscriptions
+      , view = view
+      }
+
+reactorFlags : Flags
+reactorFlags = ()
 
 -- MODEL
 
