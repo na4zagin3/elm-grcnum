@@ -15,22 +15,28 @@ import Prim exposing (..)
 
 
 main =
-  Browser.sandbox { init = init, update = update, view = view }
-
+  Browser.element
+      { init = init
+      , update = update
+      , subscriptions = subscriptions
+      , view = view
+      }
 
 
 -- MODEL
 
 type alias Myriads = List (Int)
 
+type alias Flags = ()
 type alias Model =
   { content : Result String BigInt.BigInt
   }
 
 
-init : Model
-init =
-  { content = Err "" }
+init : Flags -> (Model, Cmd Msg)
+init () =
+  ( { content = Err "" }
+  , Cmd.none)
 
 
 
@@ -44,30 +50,37 @@ type Msg
 
 one = BigInt.fromInt 1
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
+  let noCmd x = (x, Cmd.none) in
   case msg of
     Change newContent ->
         case BigInt.fromIntString newContent of
             Nothing ->
-                { model | content = Err newContent }
+                { model | content = Err newContent } |> noCmd
             Just n ->
-                { model | content = Ok n }
+                { model | content = Ok n } |> noCmd
 
     Increment ->
         case model.content of
             Ok n ->
-                { model | content = BigInt.add n one |> Ok }
+                { model | content = BigInt.add n one |> Ok } |> noCmd
             Err _ ->
-                model
+                model |> noCmd
 
     Decrement ->
         case model.content of
             Ok n ->
-                { model | content = BigInt.sub n one |> Ok }
+                { model | content = BigInt.sub n one |> Ok } |> noCmd
             Err _ ->
-                model
+                model |> noCmd
 
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Sub.none
 
 
 -- VIEW
