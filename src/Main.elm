@@ -33,21 +33,81 @@ reactor =
       }
 
 reactorFlags : Flags
-reactorFlags = ()
+reactorFlags =
+    { translations =
+          { extended = " (extended)"
+          , tooBig = "too big"
+          , numberToConvert = "Number to convert"
+          , convertFrom = "Converted from"
+          , attic =
+                { href= Just "#attic"
+                , label = "Attic"
+                }
+          , commonIonian =
+                { href = Just "#common-ionian"
+                , label = "Common Ionian"
+                }
+          , diophantus =
+                { href = Just "#diophantus"
+                , label = "Diophantus"
+                }
+          , aristarchus =
+                { href = Just "#aristarchus"
+                , label = "Aristarchus"
+                }
+          , apollonius =
+                { href = Just "#apollonius"
+                , label = "Apollonius"
+                }
+          , modifiedApollonius =
+                { href = Just "#modified-apollonius"
+                , label = "Modified Apollonius"
+                }
+          , sexagesimalTriple =
+                { href = Nothing
+                , label = "Sexagesimal triple (in seconds)"
+                }
+          , sexagesimal =
+                { href = Just "#sexagesimal"
+                , label = "Sexagesimal (EXPERIMENTAL)"
+                }
+          , sexagesimalPtolemy =
+                { href = Just "#sexagesimal-ptolemy"
+                , label = "Sexagesimal Ptolemy (EXPERIMENTAL)"
+                }
+          }
+    }
 
 -- MODEL
 
+type alias Translations =
+  { extended: String
+  , tooBig: String
+  , numberToConvert: String
+  , convertFrom: String
+  , attic: Label
+  , commonIonian: Label
+  , diophantus: Label
+  , aristarchus: Label
+  , apollonius: Label
+  , modifiedApollonius: Label
+  , sexagesimalTriple: Label
+  , sexagesimal: Label
+  , sexagesimalPtolemy: Label
+  }
 type alias Myriads = List (Int)
 
-type alias Flags = ()
+type alias Label = { href: Maybe String, label: String }
+type alias Flags = { translations: Translations }
 type alias Model =
-  { content : Result String BigInt.BigInt
+  { translations: Translations
+  , content : Result String BigInt.BigInt
   }
 
 
 init : Flags -> (Model, Cmd Msg)
-init () =
-  ( { content = Err "" }
+init flags =
+  ( { translations=flags.translations, content = Err "" }
   , Cmd.none)
 
 
@@ -103,21 +163,21 @@ view model =
     case model.content of
         Err s ->
           div []
-            [ input [ placeholder "Number to convert", value s, onInput Change ] []
-            , viewNumTable Nothing
+            [ input [ placeholder model.translations.numberToConvert, value s, onInput Change ] []
+            , viewNumTable model.translations Nothing
             ]
         Ok n ->
           let s = BigInt.toString n in
           div []
-            [ input [ placeholder "Number to convert", value s, onInput Change ] []
+            [ input [ placeholder model.translations.numberToConvert, value s, onInput Change ] []
             , button [ onClick Increment ] [ text "+" ]
             , button [ onClick Decrement ] [ text "-" ]
-            , viewNumTable (Just n)
+            , viewNumTable model.translations (Just n)
             ]
 
-viewNumTable n =
+viewNumTable trn n =
     let orig =
-            [ td [] [text "Converted from"]
+            [ td [] [text trn.convertFrom]
             , td [ style "word-break" "break-word"]
                 [text (Maybe.map BigInt.toString n |> Maybe.withDefault "")]
             ] in
@@ -126,6 +186,10 @@ viewNumTable n =
             , td [style "min-height" "2.5em"] c
             ] in
     let label h l = a [href h] [text l] in
+    let label2 l =
+            case l.href of
+                Nothing -> text l.label
+                Just href -> label href l.label in
     let calcRow l f =
             case n of
                 Nothing -> row [l] [text ""]
@@ -138,24 +202,24 @@ viewNumTable n =
                 Just np ->
                     case f np of
                         (c, False) -> row [l] (viewElements c)
-                        (c, True) -> row [l] [text "too big"] in
+                        (c, True) -> row [l] [text trn.tooBig] in
     let ionianRow l f =
             case n of
                 Nothing -> row [l] [text ""]
                 Just np ->
                     case f np of
                         (c, False) -> row [l] (viewElements c)
-                        (c, True) -> row [l, text " (extended)"] (viewElements c) in
+                        (c, True) -> row [l, text trn.extended] (viewElements c) in
     let maybeRow l f =
             case n of
                 Nothing -> row [l] [text ""]
                 Just np ->
                     case f np of
-                        Nothing -> row [l] [text "too big"]
+                        Nothing -> row [l] [text trn.tooBig]
                         Just c -> row [l] (viewElements c) in
     let body =
             [ tr [] orig
-            , tr [] (maybeRow (label "#attic" "Attic") (Attic.toAttic Attic.generalSymbols))
+            , tr [] (maybeRow (label2 trn.attic) (Attic.toAttic Attic.generalSymbols))
             , tr [] (ionianRowCommon (label "#common-ionian" "Common Ionian") Ionian.toMyriads)
             , tr [] (ionianRow (label "#diophantus" "Diophantus") Ionian.toDiophantus)
             , tr [] (ionianRow (label "#aristarchus" "Aristarchus") Ionian.toAristarchus)
