@@ -25,30 +25,31 @@ toCommon (d, m, s) =
     let (ds, dext) = Ionian.toMyriads d in
     let (ms, mext) = Ionian.toMyriads m in
     let (ss, sext) = Ionian.toMyriads s in
-    let triple =
+    let concatWords xs =
             if dext || mext || sext
             then Nothing
-            else [ds, ms, ss] |> insertSpace |> Just in
+            else xs |> insertSpace |> Just in
+    let triple = [ds, ms, ss] |> concatWords in
     case (BigInt.compare d one, BigInt.compare m one, BigInt.compare s one) of
         (LT, LT, LT) -> [] |> Just
-        (LT, LT, EQ) -> [deuteron, hexecoston, ss] |> insertSpace |> Just
-        (LT, LT, GT) -> [deutera, hexecosta, ss] |> insertSpace |> Just
-        (LT, EQ, LT) -> [proton, hexecoston, ms] |> insertSpace |> Just
-        (LT, GT, LT) -> [prota, hexecosta, ms] |> insertSpace |> Just
-        (LT, EQ, EQ) -> [proton, hexecoston, ms, cai, deuteron, ss] |> insertSpace |> Just
-        (LT, EQ, GT) -> [proton, hexecoston, ms, cai, deutera, ss] |> insertSpace |> Just
-        (LT, GT, EQ) -> [prota, hexecosta, ms, cai, deuteron, ss] |> insertSpace |> Just
-        (LT, GT, GT) -> [prota, hexecosta, ms, cai, deutera, ss] |> insertSpace |> Just
-        (EQ, LT, LT) -> [ds] |> insertSpace |> Just
-        (GT, LT, LT) -> [ds] |> insertSpace |> Just
-        (EQ, LT, EQ) -> [moira, ds, cai, deuteron, hexecoston, ss] |> insertSpace |> Just
-        (EQ, LT, GT) -> [moira, ds, cai, deutera, hexecosta, ss] |> insertSpace |> Just
-        (GT, LT, EQ) -> [moirai, ds, cai, deuteron, hexecoston, ss] |> insertSpace |> Just
-        (GT, LT, GT) -> [moirai, ds, cai, deutera, hexecosta, ss] |> insertSpace |> Just
-        (EQ, EQ, LT) -> [ds, ms] |> insertSpace |> Just
-        (EQ, GT, LT) -> [ds, ms] |> insertSpace |> Just
-        (GT, EQ, LT) -> [ds, ms] |> insertSpace |> Just
-        (GT, GT, LT) -> [ds, ms] |> insertSpace |> Just
+        (LT, LT, EQ) -> [deuteron, hexecoston, ss] |> concatWords
+        (LT, LT, GT) -> [deutera, hexecosta, ss] |> concatWords
+        (LT, EQ, LT) -> [proton, hexecoston, ms] |> concatWords
+        (LT, GT, LT) -> [prota, hexecosta, ms] |> concatWords
+        (LT, EQ, EQ) -> [proton, hexecoston, ms, cai, deuteron, ss] |> concatWords
+        (LT, EQ, GT) -> [proton, hexecoston, ms, cai, deutera, ss] |> concatWords
+        (LT, GT, EQ) -> [prota, hexecosta, ms, cai, deuteron, ss] |> concatWords
+        (LT, GT, GT) -> [prota, hexecosta, ms, cai, deutera, ss] |> concatWords
+        (EQ, LT, LT) -> [ds] |> concatWords
+        (GT, LT, LT) -> [ds] |> concatWords
+        (EQ, LT, EQ) -> [moira, ds, cai, deuteron, hexecoston, ss] |> concatWords
+        (EQ, LT, GT) -> [moira, ds, cai, deutera, hexecosta, ss] |> concatWords
+        (GT, LT, EQ) -> [moirai, ds, cai, deuteron, hexecoston, ss] |> concatWords
+        (GT, LT, GT) -> [moirai, ds, cai, deutera, hexecosta, ss] |> concatWords
+        (EQ, EQ, LT) -> [ds, ms] |> concatWords
+        (EQ, GT, LT) -> [ds, ms] |> concatWords
+        (GT, EQ, LT) -> [ds, ms] |> concatWords
+        (GT, GT, LT) -> [ds, ms] |> concatWords
         (EQ, EQ, EQ) -> triple
         (EQ, EQ, GT) -> triple
         (EQ, GT, EQ) -> triple
