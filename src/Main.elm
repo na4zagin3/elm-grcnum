@@ -7,6 +7,8 @@ import Greek.Attic as Attic
 import Greek.Ionian as Ionian
 import Greek.Fraction
 import Greek.Sexagesimal
+import Greek.Spell
+import Greek.Spell exposing (Gender(..), Case(..))
 import Fraction exposing (Frac(..))
 import Html exposing (Html, Attribute, a, button, div, input, table, tbody, td, tr, text, span, wbr)
 import Html.Attributes exposing (..)
@@ -49,6 +51,10 @@ reactorFlags =
           , sexagesimalFormat = "Input in modern sexagesimal notation. E.g., 12;34,5 (meaning 12°34′5″)"
           , fractionButton = "fraction"
           , fractionFormat = "Input a fraction or a series of unit fractions. E.g., 355/113 or 1/2+1/3+1/5"
+          , spellSingMasc =
+                { href= Nothing
+                , label = "Spell (nominative masculine form)"
+                }
           , attic =
                 { href= Just "#attic"
                 , label = "Attic"
@@ -110,6 +116,7 @@ type alias Translations =
   , sexagesimalFormat: String
   , fractionButton: String
   , fractionFormat: String
+  , spellSingMasc: Label
   , attic: Label
   , commonIonian: Label
   , diophantus: Label
@@ -322,6 +329,12 @@ viewNumTable trn n =
     let body =
             [ tr [] (origRow trn (Maybe.map BigInt.toString n |> Maybe.withDefault ""))
             , tr [] (maybeRow trn n (label trn.attic) (Attic.toAttic Attic.generalSymbols))
+            , tr [] (maybeRow trn n (label trn.spellSingMasc)
+                         (\x -> bigIntToInt x
+                         |> Maybe.andThen (Greek.Spell.commonCardinal Nominative Masculine)
+                         |> Maybe.map Greek.Spell.renderWords
+                         |> Maybe.map (\w -> [Word w])
+                         ))
             , tr [] (ionianRowCommon (label trn.commonIonian) (Ionian.toMyriads True))
             , tr [] (ionianRow (label trn.diophantus) (Ionian.toDiophantus True))
             , tr [] (ionianRow (label trn.aristarchus) (Ionian.toAristarchus True))
@@ -383,3 +396,9 @@ viewSexagesimal (d, m, s) =
     |> (if BigInt.gte num sixty then (\ x -> x ++ [" = ", BigInt.toString num, "″"]) else identity)
     |> String.join ""
     |> text
+
+bigIntToInt : BigInt.BigInt -> Maybe Int
+bigIntToInt n =
+    case String.toInt (BigInt.toString n) of
+        Nothing -> Nothing
+        Just c -> if n == BigInt.fromInt c then Just c else Nothing
