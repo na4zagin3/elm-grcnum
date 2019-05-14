@@ -1,4 +1,5 @@
-module Digits exposing (Myriads, SexagesimalTriple, explodeIntoDigits, explodeIntoMyriads, explodeIntoSexagesimalTriple)
+module Digits exposing (Myriads, SexagesimalTriple, explodeIntoDigits, explodeIntoMyriads, explodeIntoSexagesimalTriple,
+                            explodeBigIntBy)
 
 import BigInt
 import Dict
@@ -15,14 +16,21 @@ explodeIntoDigits n =
    in
    sub [] n
 
-explodeBigIntBy : BigInt.BigInt -> BigInt.BigInt -> Myriads
-explodeBigIntBy mod n =
+explodeBigIntIntoIntsBy : BigInt.BigInt -> BigInt.BigInt -> Myriads
+explodeBigIntIntoIntsBy =
     let bigIntToInt m = BigInt.toString m |> String.toInt |> Maybe.withDefault 0 in
+    explodeBigIntBySub bigIntToInt
+
+explodeBigIntBy : BigInt.BigInt -> BigInt.BigInt -> List BigInt.BigInt
+explodeBigIntBy =
+    explodeBigIntBySub identity
+
+explodeBigIntBySub : (BigInt.BigInt -> a) -> BigInt.BigInt -> BigInt.BigInt -> List a
+explodeBigIntBySub f mod n =
     let sub acc m =
             if BigInt.gt m zero
             then let (q, r) = BigInt.divmod m mod |> Maybe.withDefault (zero, zero) in
-                 let ir = bigIntToInt r in
-                 sub (ir :: acc) q
+                 sub (f r :: acc) q
             else acc
     in
     sub [] n
@@ -32,7 +40,7 @@ sixty = BigInt.fromInt 60
 myriad = BigInt.fromInt 10000
 
 explodeIntoMyriads : BigInt.BigInt -> Myriads
-explodeIntoMyriads = explodeBigIntBy myriad
+explodeIntoMyriads = explodeBigIntIntoIntsBy myriad
 
 explodeIntoSexagesimalTriple : BigInt.BigInt -> SexagesimalTriple
 explodeIntoSexagesimalTriple n =
