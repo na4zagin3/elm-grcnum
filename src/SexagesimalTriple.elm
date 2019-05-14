@@ -1,4 +1,4 @@
-module SexagesimalTriple exposing (toCommon, secondsToCommon, secondsToPtolemy)
+module SexagesimalTriple exposing (toCommon, secondsToCommon, toPtolemy, secondsToPtolemy)
 
 import Ionian
 import BigInt
