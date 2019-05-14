@@ -185,11 +185,10 @@ viewNumTable trn n =
             [ td [style "width" "10em"] l
             , td [style "min-height" "2.5em"] c
             ] in
-    let label h l = a [href h] [text l] in
-    let label2 l =
+    let label l =
             case l.href of
                 Nothing -> text l.label
-                Just href -> label href l.label in
+                Just h -> a [href h] [text l.label] in
     let calcRow l f =
             case n of
                 Nothing -> row [l] [text ""]
@@ -219,15 +218,15 @@ viewNumTable trn n =
                         Just c -> row [l] (viewElements c) in
     let body =
             [ tr [] orig
-            , tr [] (maybeRow (label2 trn.attic) (Attic.toAttic Attic.generalSymbols))
-            , tr [] (ionianRowCommon (label "#common-ionian" "Common Ionian") Ionian.toMyriads)
-            , tr [] (ionianRow (label "#diophantus" "Diophantus") Ionian.toDiophantus)
-            , tr [] (ionianRow (label "#aristarchus" "Aristarchus") Ionian.toAristarchus)
-            , tr [] (ionianRow (label "#apollonius" "Apollonius") Ionian.toApollonius)
-            , tr [] (ionianRow (label "#modified-apollonius" "Modified Apollonius") Ionian.toModifiedApollonius)
-            , tr [] (calcRow (text "Sexagesimal triple (in seconds)") (\np -> ([], [viewSexagesimal np])))
-            , tr [] (maybeRow (label "#sexagesimal" "Sexagesimal (EXPERIMENTAL)") (SexagesimalTriple.secondsToCommon))
-            , tr [] (maybeRow (label "#sexagesimal-ptolemy" "Sexagesimal Ptolemy (EXPERIMENTAL)") (SexagesimalTriple.secondsToPtolemy))
+            , tr [] (maybeRow (label trn.attic) (Attic.toAttic Attic.generalSymbols))
+            , tr [] (ionianRowCommon (label trn.commonIonian) Ionian.toMyriads)
+            , tr [] (ionianRow (label trn.diophantus) Ionian.toDiophantus)
+            , tr [] (ionianRow (label trn.aristarchus) Ionian.toAristarchus)
+            , tr [] (ionianRow (label trn.apollonius) Ionian.toApollonius)
+            , tr [] (ionianRow (label trn.modifiedApollonius) Ionian.toModifiedApollonius)
+            , tr [] (calcRow (label trn.sexagesimalTriple) (\np -> ([], [viewSexagesimal np])))
+            , tr [] (maybeRow (label trn.sexagesimal) (SexagesimalTriple.secondsToCommon))
+            , tr [] (maybeRow (label trn.sexagesimalPtolemy) (SexagesimalTriple.secondsToPtolemy))
             ] in
     table [style "width" "100%"]
         [ tbody [] body
