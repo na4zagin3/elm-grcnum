@@ -1,11 +1,9 @@
 module Fraction exposing (..)
 
-import Ionian
 import BigInt
 import BigInt exposing (BigInt)
 import Digits exposing (..)
 import Dict
-import Ionian
 import Prim exposing (..)
 
 import Parser exposing (Parser, (|.), (|=), succeed, symbol, int)

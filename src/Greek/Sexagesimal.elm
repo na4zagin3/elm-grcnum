@@ -1,10 +1,9 @@
-module SexagesimalTriple exposing (toCommon, secondsToCommon, toPtolemy, secondsToPtolemy)
+module Greek.Sexagesimal exposing (toCommon, secondsToCommon, toPtolemy, secondsToPtolemy)
 
-import Ionian
 import BigInt
 import Digits exposing (..)
 import Dict
-import Ionian
+import Greek.Ionian as Ionian
 import Prim exposing (..)
 
 zero = BigInt.fromInt 0

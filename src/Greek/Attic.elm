@@ -1,4 +1,4 @@
-module Attic exposing (AtticSymbols, toAttic, generalSymbols)
+module Greek.Attic exposing (AtticSymbols, toAttic, generalSymbols)
 
 import BigInt
 import Digits exposing (..)

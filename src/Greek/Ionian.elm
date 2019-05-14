@@ -1,4 +1,4 @@
-module Ionian exposing (toMyriads,
+module Greek.Ionian exposing (toMyriads,
                             toDiophantus,
                             toAristarchus,
                             toApollonius,

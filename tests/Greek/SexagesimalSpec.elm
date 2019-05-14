@@ -1,7 +1,7 @@
-module SexagesimalTripleSpec exposing (..)
+module Greek.SexagesimalSpec exposing (..)
 
 import BigInt
-import SexagesimalTriple
+import Greek.Sexagesimal
 import Expect exposing (Expectation, pass, fail)
 import Fuzz exposing (Fuzzer, int, list, string, tuple, tuple3)
 import Test exposing (..)
@@ -22,11 +22,11 @@ bigint =
 
 suite : Test
 suite =
-    describe "SexagesimalTriple"
-        [ describe "SexagesimalTriple.secondsToCommon"
+    describe "Greek.Sexagesimal"
+        [ describe "Greek.Sexagesimal.secondsToCommon"
               [fuzz2 bigint bigint "return too big for all numbers which is bigger than a number" <|
                     \n m ->
-                    let conv x = x |> SexagesimalTriple.secondsToCommon in
+                    let conv x = x |> Greek.Sexagesimal.secondsToCommon in
                     let a = BigInt.min n m in
                     let b = BigInt.max n m in
                     case (BigInt.compare a zero, conv a, conv b) of

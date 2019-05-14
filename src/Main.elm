@@ -1,15 +1,15 @@
 module Main exposing (main, reactor)
 
-import Attic
 import Browser
 import BigInt exposing (BigInt)
 import Digits exposing (SexagesimalTriple)
-import Ionian
+import Greek.Attic as Attic
+import Greek.Ionian as Ionian
+import Greek.Sexagesimal
 import Html exposing (Html, Attribute, a, button, div, input, table, tbody, td, tr, text, span, wbr)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Sexagesimal exposing (Sexagesimal)
-import SexagesimalTriple
 import Prim exposing (..)
 
 
@@ -294,8 +294,8 @@ viewSgTable trn n =
     let body =
             [ tr [] (origRow trn (Maybe.map Sexagesimal.toString n |> Maybe.withDefault ""))
             , tr [] (calcRow st (label trn.sexagesimalTriple) (\np -> ([], [viewSexagesimal np])))
-            , tr [] (maybeRow trn st (label trn.sexagesimal) (SexagesimalTriple.toCommon))
-            , tr [] (maybeRow trn st (label trn.sexagesimalPtolemy) (SexagesimalTriple.toPtolemy))
+            , tr [] (maybeRow trn st (label trn.sexagesimal) (Greek.Sexagesimal.toCommon))
+            , tr [] (maybeRow trn st (label trn.sexagesimalPtolemy) (Greek.Sexagesimal.toPtolemy))
             ] in
     table [style "width" "100%"]
         [ tbody [] body
