@@ -38,6 +38,7 @@ reactorFlags =
     { translations =
           { extended = " (extended)"
           , tooBig = "too big"
+          , inputIn = "Input in "
           , numberToConvert = "Number to convert"
           , convertFrom = "Converted from"
           , decimalButton = "decimal"
@@ -88,6 +89,7 @@ reactorFlags =
 type alias Translations =
   { extended: String
   , tooBig: String
+  , inputIn: String
   , numberToConvert: String
   , convertFrom: String
   , decimalButton: String
@@ -192,21 +194,23 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     let trn = model.translations in
-    let intBtn = button [ onClick SelectInt ] [ text trn.decimalButton ] in
-    let sgBtn = button [ onClick SelectSg ] [ text trn.sexagesimalButton ] in
+    let formatSelector =
+            div []
+                [text trn.inputIn
+                , button [ onClick SelectInt ] [ text trn.decimalButton ]
+                , button [ onClick SelectSg ] [ text trn.sexagesimalButton ]
+                ] in
     case model.content of
         NumInt Nothing ->
           div []
-            [ intBtn
-            , sgBtn
+            [ formatSelector
             , input [ placeholder model.translations.numberToConvert, value model.input, onInput Change ] []
             , div [] [ text trn.decimalFormat ]
             , viewNumTable model.translations Nothing
             ]
         NumInt (Just n) ->
           div []
-            [ intBtn
-            , sgBtn
+            [ formatSelector
             , input [ placeholder model.translations.numberToConvert, value model.input, onInput Change ] []
             , button [ onClick Increment ] [ text "+" ]
             , button [ onClick Decrement ] [ text "-" ]
@@ -215,16 +219,14 @@ view model =
             ]
         NumSg Nothing ->
           div []
-            [ intBtn
-            , sgBtn
+            [ formatSelector
             , input [ placeholder model.translations.numberToConvert, value model.input, onInput Change ] []
             , div [] [ text trn.sexagesimalFormat ]
             , viewSgTable model.translations Nothing
             ]
         NumSg (Just n) ->
           div []
-            [ intBtn
-            , sgBtn
+            [ formatSelector
             , input [ placeholder model.translations.numberToConvert, value model.input, onInput Change ] []
             -- , button [ onClick Increment ] [ text "+" ]
             -- , button [ onClick Decrement ] [ text "-" ]
