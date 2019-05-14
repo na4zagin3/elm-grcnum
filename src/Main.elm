@@ -279,11 +279,11 @@ viewNumTable trn n =
     let body =
             [ tr [] (origRow trn (Maybe.map BigInt.toString n |> Maybe.withDefault ""))
             , tr [] (maybeRow trn n (label trn.attic) (Attic.toAttic Attic.generalSymbols))
-            , tr [] (ionianRowCommon (label trn.commonIonian) Ionian.toMyriads)
-            , tr [] (ionianRow (label trn.diophantus) Ionian.toDiophantus)
-            , tr [] (ionianRow (label trn.aristarchus) Ionian.toAristarchus)
-            , tr [] (ionianRow (label trn.apollonius) Ionian.toApollonius)
-            , tr [] (ionianRow (label trn.modifiedApollonius) Ionian.toModifiedApollonius)
+            , tr [] (ionianRowCommon (label trn.commonIonian) (Ionian.toMyriads True))
+            , tr [] (ionianRow (label trn.diophantus) (Ionian.toDiophantus True))
+            , tr [] (ionianRow (label trn.aristarchus) (Ionian.toAristarchus True))
+            , tr [] (ionianRow (label trn.apollonius) (Ionian.toApollonius True))
+            , tr [] (ionianRow (label trn.modifiedApollonius) (Ionian.toModifiedApollonius True))
             ] in
     table [style "width" "100%"]
         [ tbody [] body

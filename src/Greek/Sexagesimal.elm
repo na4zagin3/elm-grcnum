@@ -21,9 +21,9 @@ secondsToPtolemy n =
 
 toCommon : SexagesimalTriple -> Maybe (List Element)
 toCommon (d, m, s) =
-    let (ds, dext) = Ionian.toMyriads d in
-    let (ms, mext) = Ionian.toMyriads m in
-    let (ss, sext) = Ionian.toMyriads s in
+    let (ds, dext) = Ionian.toMyriads True d in
+    let (ms, mext) = Ionian.toMyriads True m in
+    let (ss, sext) = Ionian.toMyriads True s in
     let concatWords xs =
             if dext || mext || sext
             then Nothing
@@ -60,9 +60,9 @@ toCommon (d, m, s) =
 
 toPtolemy : SexagesimalTriple -> Maybe (List Element)
 toPtolemy (d, m, s) =
-    let (ds, dext) = zeroToNothing d |> Maybe.map Ionian.toMyriads |> Maybe.withDefault (ousia, False) in
-    let (ms, mext) = zeroToNothing m |> Maybe.map Ionian.toMyriads |> Maybe.withDefault (ousia, False) in
-    let (ss, sext) = zeroToNothing s |> Maybe.map Ionian.toMyriads |> Maybe.withDefault (ousia, False) in
+    let (ds, dext) = zeroToNothing d |> Maybe.map (Ionian.toMyriads True) |> Maybe.withDefault (ousia, False) in
+    let (ms, mext) = zeroToNothing m |> Maybe.map (Ionian.toMyriads True) |> Maybe.withDefault (ousia, False) in
+    let (ss, sext) = zeroToNothing s |> Maybe.map (Ionian.toMyriads True) |> Maybe.withDefault (ousia, False) in
     if dext || mext || sext
     then Nothing
     else [ds, ms, ss] |> insertSpace |> Just
