@@ -5,6 +5,7 @@ import BigInt exposing (BigInt)
 import Digits exposing (SexagesimalTriple)
 import Greek.Attic as Attic
 import Greek.Ionian as Ionian
+import Greek.Fraction
 import Greek.Sexagesimal
 import Fraction exposing (Frac(..))
 import Html exposing (Html, Attribute, a, button, div, input, table, tbody, td, tr, text, span, wbr)
@@ -72,6 +73,10 @@ reactorFlags =
                 { href = Just "#modified-apollonius"
                 , label = "Modified Apollonius"
                 }
+          , fracDiophantus =
+                { href = Just "#fraction-diophantus"
+                , label = "Diophantus"
+                }
           , sexagesimalTriple =
                 { href = Nothing
                 , label = "Sexagesimal triple"
@@ -107,6 +112,7 @@ type alias Translations =
   , aristarchus: Label
   , apollonius: Label
   , modifiedApollonius: Label
+  , fracDiophantus: Label
   , sexagesimalTriple: Label
   , sexagesimal: Label
   , sexagesimalPtolemy: Label
@@ -322,8 +328,14 @@ viewNumTable trn n =
         ]
 
 viewFracTable trn n =
+    let fracRow l f =
+            case n |> Maybe.andThen f of
+                Nothing -> row [l] [text ""]
+                Just (c, False) -> row [l] (viewElements c)
+                Just (c, True) -> row [l, text trn.extended] (viewElements c) in
     let body =
             [ tr [] (origElemRow trn (Maybe.map Fraction.toElements n |> Maybe.withDefault []))
+            , tr [] (fracRow (label trn.fracDiophantus) Greek.Fraction.toDiophantus)
             ] in
     table [style "width" "100%"]
         [ tbody [] body
