@@ -6,6 +6,7 @@ import Digits exposing (SexagesimalTriple)
 import Greek.Attic as Attic
 import Greek.Ionian as Ionian
 import Greek.Sexagesimal
+import Fraction exposing (Frac(..))
 import Html exposing (Html, Attribute, a, button, div, input, table, tbody, td, tr, text, span, wbr)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
@@ -45,6 +46,8 @@ reactorFlags =
           , decimalFormat = "Input a number without separators. E.g., 1234"
           , sexagesimalButton = "sexagesimal"
           , sexagesimalFormat = "Input in modern sexagesimal notation. E.g., 12;34,5 (meaning 12°34′5″)"
+          , fractionButton = "fraction"
+          , fractionFormat = "Input a fraction or a series of unit fractions. E.g., 355/113 or 1/2+1/3+1/5"
           , attic =
                 { href= Just "#attic"
                 , label = "Attic"
@@ -96,6 +99,8 @@ type alias Translations =
   , decimalFormat: String
   , sexagesimalButton: String
   , sexagesimalFormat: String
+  , fractionButton: String
+  , fractionFormat: String
   , attic: Label
   , commonIonian: Label
   , diophantus: Label
@@ -116,7 +121,9 @@ type alias Model =
   , input : String
   }
 
-type Content = NumInt (Maybe BigInt) | NumSg (Maybe Sexagesimal)
+type Content = NumInt (Maybe BigInt)
+             | NumFrac (Maybe Frac)
+             | NumSg (Maybe Sexagesimal)
 
 init : Flags -> (Model, Cmd Msg)
 init flags =
@@ -133,6 +140,7 @@ type Msg
   | Increment
   | Decrement
   | SelectInt
+  | SelectFrac
   | SelectSg
 
 one = BigInt.fromInt 1
@@ -145,6 +153,12 @@ updateModelWithInput model newContent =
                   { model | content = Just n |> NumInt }
               Nothing ->
                   { model | content = Nothing |> NumInt}
+      NumFrac _ ->
+          case Fraction.fromString newContent of
+              Just n ->
+                  { model | content = Just n |> NumFrac }
+              Nothing ->
+                  { model | content = Nothing |> NumFrac }
       NumSg _ ->
           case Sexagesimal.fromString newContent of
               Just n ->
@@ -177,6 +191,8 @@ update msg model =
 
     SelectInt ->
         updateModelWithInput { model | content = Nothing |> NumInt } model.input |> noCmd
+    SelectFrac ->
+        updateModelWithInput { model | content = Nothing |> NumFrac } model.input |> noCmd
     SelectSg ->
         updateModelWithInput { model | content = Nothing |> NumSg } model.input |> noCmd
 
@@ -198,6 +214,7 @@ view model =
             div []
                 [text trn.inputIn
                 , button [ onClick SelectInt ] [ text trn.decimalButton ]
+                , button [ onClick SelectFrac ] [ text trn.fractionButton ]
                 , button [ onClick SelectSg ] [ text trn.sexagesimalButton ]
                 ] in
     case model.content of
@@ -216,6 +233,13 @@ view model =
             , button [ onClick Decrement ] [ text "-" ]
             , div [] [ text trn.decimalFormat ]
             , viewNumTable model.translations (Just n)
+            ]
+        NumFrac n ->
+          div []
+            [ formatSelector
+            , input [ placeholder model.translations.numberToConvert, value model.input, onInput Change ] []
+            , div [] [ text trn.fractionFormat ]
+            , viewFracTable model.translations n
             ]
         NumSg Nothing ->
           div []
@@ -286,6 +310,14 @@ viewNumTable trn n =
             , tr [] (ionianRow (label trn.aristarchus) (Ionian.toAristarchus True))
             , tr [] (ionianRow (label trn.apollonius) (Ionian.toApollonius True))
             , tr [] (ionianRow (label trn.modifiedApollonius) (Ionian.toModifiedApollonius True))
+            ] in
+    table [style "width" "100%"]
+        [ tbody [] body
+        ]
+
+viewFracTable trn n =
+    let body =
+            [ tr [] (origRow trn (Maybe.map Fraction.toString n |> Maybe.withDefault ""))
             ] in
     table [style "width" "100%"]
         [ tbody [] body
