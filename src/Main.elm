@@ -77,6 +77,10 @@ reactorFlags =
                 { href = Just "#fraction-diophantus"
                 , label = "Diophantus"
                 }
+          , fracHeron =
+                { href = Just "#fraction-heron"
+                , label = "Heron"
+                }
           , sexagesimalTriple =
                 { href = Nothing
                 , label = "Sexagesimal triple"
@@ -113,6 +117,7 @@ type alias Translations =
   , apollonius: Label
   , modifiedApollonius: Label
   , fracDiophantus: Label
+  , fracHeron: Label
   , sexagesimalTriple: Label
   , sexagesimal: Label
   , sexagesimalPtolemy: Label
@@ -336,6 +341,7 @@ viewFracTable trn n =
     let body =
             [ tr [] (origElemRow trn (Maybe.map Fraction.toElements n |> Maybe.withDefault []))
             , tr [] (fracRow (label trn.fracDiophantus) Greek.Fraction.toDiophantus)
+            , tr [] (fracRow (label trn.fracHeron) Greek.Fraction.toHeron)
             ] in
     table [style "width" "100%"]
         [ tbody [] body
