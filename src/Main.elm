@@ -272,6 +272,12 @@ origRow trn s =
         [text s]
     ]
 
+origElemRow trn e =
+    [ td [] [text trn.convertFrom]
+    , td [ style "word-break" "break-word"]
+        (viewElements e)
+    ]
+
 calcRow n l f =
     case n of
         Nothing -> row [l] [text ""]
@@ -317,7 +323,7 @@ viewNumTable trn n =
 
 viewFracTable trn n =
     let body =
-            [ tr [] (origRow trn (Maybe.map Fraction.toString n |> Maybe.withDefault ""))
+            [ tr [] (origElemRow trn (Maybe.map Fraction.toElements n |> Maybe.withDefault []))
             ] in
     table [style "width" "100%"]
         [ tbody [] body

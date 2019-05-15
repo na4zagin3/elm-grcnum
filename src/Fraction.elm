@@ -30,6 +30,15 @@ toString fr =
             |> List.map (\u -> "1/" ++ BigInt.toString u)
             |> String.join "+"
 
+toElements : Frac -> List Element
+toElements fr =
+    case fr of
+        SimpleFrac n d ->
+            [Fraction True [BigInt.toString d |> Word] [BigInt.toString n |> Word]]
+        Unities f s us ->
+            let uf d = [Fraction True [BigInt.toString d |> Word] [Word "1"]] in
+            [f, s] ++ us |> List.map uf |> List.intersperse [WeakBreak, Word "+"] |> List.concat
+
 mixedFromString : String -> Maybe MixedFrac
 mixedFromString s =
     case Parser.run (succeed identity |= parseMixedFrac |. Parser.end) s of
