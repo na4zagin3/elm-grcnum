@@ -35,6 +35,9 @@ animate g = case g of
                  Feminine -> True
                  Neuter -> False
 
+movableNu : String
+movableNu = "(ν)"
+
 heis : Adjective
 heis c g n p =
     let a = accented p in
@@ -70,9 +73,9 @@ treis c g n p =
         (Nominative, False, _) -> "τρία"
         (Accusative, False, _) -> "τρία"
         (Genitive, _, _) -> "τριῶν"
-        (Dative, _, Final) -> "τρισίν"
-        (Dative, _, Accented) -> "τρισί"
-        (Dative, _, Normal) -> "τρισὶ"
+        (Dative, _, Final) -> "τρισί" ++ movableNu
+        (Dative, _, Accented) -> "τρισί" ++ movableNu
+        (Dative, _, Normal) -> "τρισὶ" ++ movableNu
 
 tettares : Adjective
 tettares c g n p =
@@ -82,9 +85,9 @@ tettares c g n p =
         (Nominative, False, _) -> "τέτταρα"
         (Accusative, False, _) -> "τέτταρα"
         (Genitive, _, _) -> "τεττάρων"
-        (Dative, _, Final) -> "τέτταρσιν"
-        (Dative, _, Accented) -> "τέτταρσι"
-        (Dative, _, Normal) -> "τέτταρσι"
+        (Dative, _, Final) -> "τέτταρσι" ++ movableNu
+        (Dative, _, Accented) -> "τέτταρσι" ++ movableNu
+        (Dative, _, Normal) -> "τέτταρσι" ++ movableNu
 
 pente : Adjective
 pente _ _ _ _ = "πέντε"
@@ -112,9 +115,9 @@ dodeca _ _ _ p = if enclined p then "δώδεκά" else "δώδεκα"
 
 eicosin : Adjective
 eicosin _ _ _ p = case p of
-                     Final -> "εἴκοσιν"
-                     Accented -> "εἴκοσιί"
-                     Normal -> "εἴκοσι"
+                     Final -> "εἴκοσι" ++ movableNu
+                     Accented -> "εἴκοσί" ++ movableNu
+                     Normal -> "εἴκοσι" ++ movableNu
 
 triaconta : Adjective
 triaconta _ _ _ p = conta "τριά" p
@@ -173,8 +176,21 @@ cosioi s = vowelStemIos (s ++ "κόσ") (s ++ "κοσ")
 chilioiS : String -> Adjective
 chilioiS s = vowelStemIos (s ++ "χίλ") (s ++ "χιλ")
 
+myrioiS : String -> Adjective
+myrioiS s = vowelStemIos (s ++ "μύρ") (s ++ "μυρ")
+
 cisS : String -> Adverb
-cisS s p = accentiateFinalA s ++ "κις"
+cisS s p = forceAccentiateFinalA (compoundForm s) ++ "κις"
+
+cisAS : Adjective -> Adverb
+cisAS a =
+    a Nominative Neuter Plural Normal
+    |> cisS
+
+cisWS : Word -> Adverb
+cisWS a =
+    renderWords [a]
+    |> cisS
 
 deaccentPairs : List (String, String)
 deaccentPairs =
@@ -228,16 +244,22 @@ deaccent str =
         Just regex ->
             Regex.replace regex deaccentReplacer str
 
+dropMovableNu : String -> String
+dropMovableNu str =
+    if String.endsWith movableNu str
+    then String.dropRight (String.length movableNu) str
+    else str
+
 compoundForm : String -> String
 compoundForm str =
-    deaccent str
+    str
+    |> dropMovableNu
+    |> deaccent
     |> String.replace "ς" "σ"
 
-accentiateFinalA : String -> String
-accentiateFinalA str =
-    if String.right 1 str == "α"
-    then String.dropRight 1 str ++ "ά"
-    else str
+forceAccentiateFinalA : String -> String
+forceAccentiateFinalA str =
+    String.dropRight 1 str ++ "ά"
 
 -- ToDo: Support enclitics
 vowelStemIos : String -> String -> Adjective
@@ -311,22 +333,14 @@ octoP = "ὀκτω"
 enneaP : String
 enneaP = "ἐννεα"
 
+hecatontaP = "ἑκατοντα"
+
 commonCardinalFromDigits : Case -> Gender -> List Int -> Maybe (List Word)
 commonCardinalFromDigits c g n =
     let sg w = w c g Singular |> Word in
     let pl w = w c g Plural |> Word in
-    let reorder2 tx ty =
-            List.filterMap identity [ty, tx]
-            |> List.intersperse [cai]
-            |> List.concat
-    in
-    let reorder3 tx ty tz =
-            List.filterMap identity [tz, ty, tx]
-            |> List.intersperse [cai]
-            |> List.concat
-    in
-    let reorder4 tx ty tz tw =
-            List.filterMap identity [tw, tz, ty, tx]
+    let reorder xs =
+            List.filterMap identity xs
             |> List.intersperse [cai]
             |> List.concat
     in
@@ -337,6 +351,17 @@ commonCardinalFromDigits c g n =
               x :: (List.repeat zeros 0)
               |> commonCardinalFromDigits c g
               |> Maybe.map Just
+    in
+    let compound () =
+            let f (i, d) = digit i d in
+            List.indexedMap digit (List.reverse n)
+                |> maybesToList
+                |> Maybe.map (reorder)
+    in
+    let fromAdverb f ds =
+            case commonAdverbFromDigits ds |> Maybe.map renderWords of
+                Nothing -> Nothing
+                Just p -> Just [pl (f (compoundForm p))]
     in
     case n of
         [1] -> Just [sg heis]
@@ -366,9 +391,7 @@ commonCardinalFromDigits c g n =
         [7,0] -> Just [pl hebdomeconta]
         [8,0] -> Just [pl ogdoeconta]
         [9,0] -> Just [pl eneneconta]
-        [x,y] -> Maybe.map2 reorder2
-                 (digit 1 x)
-                 (digit 0 y)
+        [x,y] -> compound ()
         [1,0,0] -> Just [pl hecaton]
         [2,0,0] -> Just [pl diacosioi]
         [3,0,0] -> Just [pl triacosioi]
@@ -378,35 +401,33 @@ commonCardinalFromDigits c g n =
         [7,0,0] -> Just [pl heptacosioi]
         [8,0,0] -> Just [pl octacosioi]
         [9,0,0] -> Just [pl enacosioi]
-        [x,y,z] -> Maybe.map3 reorder3
-                 (digit 2 x)
-                 (digit 1 y)
-                 (digit 0 z)
+        [x,y,z] -> compound ()
         [1,0,0,0] -> Just [pl chilioi]
-        [x,0,0,0] ->
-            case commonAdverbFromDigits [x] |> Maybe.map renderWords of
-                Nothing -> Nothing
-                Just p -> Just [pl (chilioiS (compoundForm p))]
-        [x,y,z,w] -> Maybe.map4 reorder4
-                 (digit 3 x)
-                 (digit 2 y)
-                 (digit 1 z)
-                 (digit 0 w)
+        [x,0,0,0] -> fromAdverb chilioiS [x]
+        [x,y,z,w] -> compound ()
+        [1, 0,0,0,0] -> Just [pl (myrioiS "")]
+        [x, 0,0,0,0] -> fromAdverb myrioiS [x]
+        [_, _,_,_,_] -> compound ()
+        [x,y, 0,0,0,0] -> fromAdverb myrioiS [x,y]
+        [_,_, _,_,_,_] -> compound ()
+        [x,y,z, 0,0,0,0] -> fromAdverb myrioiS [x,y,z]
+        [_,_,_, _,_,_,_] -> compound ()
+        [x,y,z,w, 0,0,0,0] -> fromAdverb myrioiS [x,y,z,w]
+        [_,_,_,_, _,_,_,_] -> compound ()
         _ -> Nothing
+
+maybesToList : List (Maybe a) -> Maybe (List a)
+maybesToList =
+    let sub acc xs =
+            case xs of
+                [] -> Just (List.reverse acc)
+                (Nothing :: xr) -> Nothing
+                (Just x :: xr) -> sub (x :: acc) xr in
+    sub []
 
 commonAdverbFromDigits : List Int -> Maybe (List Word)
 commonAdverbFromDigits n =
     let adv w = Word w in
-    let reorder2 tx ty =
-            List.filterMap identity [ty, tx]
-            |> List.intersperse [cai]
-            |> List.concat
-    in
-    let reorder3 tx ty tz =
-            List.filterMap identity [tz, ty, tx]
-            |> List.intersperse [cai]
-            |> List.concat
-    in
     let digit zeros x =
             if x == 0
             then Just Nothing
@@ -415,6 +436,17 @@ commonAdverbFromDigits n =
               |> commonAdverbFromDigits
               |> Maybe.map Just
     in
+    let fromCardinal () =
+            case commonCardinalFromDigits Nominative Neuter n |> Maybe.map renderWords of
+                Nothing -> Nothing
+                Just p -> Just [cisS p |> adv] in
+    let compound () =
+            let f (i, d) = digit i d in
+            List.indexedMap digit (List.reverse n)
+            |> maybesToList
+            |> Maybe.map (List.filterMap identity)
+            |> Maybe.map (List.reverse)
+            |> Maybe.map (List.concat) in
     case n of
         [1] -> Just [adv hapax]
         [2] -> Just [adv dis]
@@ -425,6 +457,25 @@ commonAdverbFromDigits n =
         [7] -> Just [cisS heptaP |> adv]
         [8] -> Just [cisS octaP |> adv]
         [9] -> Just [cisS enaP |> adv]
+        [1,3] -> Just [caideca treisP |> cisWS |> adv]
+        [1,4] -> Just [caideca tettaresP |> cisWS |> adv]
+        [1,x] -> fromCardinal ()
+        [2,0] -> Just [eicosin |> cisAS |> adv]
+        [_,0] -> fromCardinal ()
+        [_,_] -> compound ()
+        [1,0,0] -> Just [cisS hecatontaP |> adv]
+        [_,0,0] -> fromCardinal ()
+        [_,_,_] -> compound ()
+        [_,0,0,0] -> fromCardinal ()
+        [_,_,_,_] -> compound ()
+        [_, 0,0,0,0] -> fromCardinal ()
+        [_, _,_,_,_] -> compound ()
+        [_,0, 0,0,0,0] -> fromCardinal ()
+        [_,_, _,_,_,_] -> compound ()
+        [_,0,0, 0,0,0,0] -> fromCardinal ()
+        [_,_,_, _,_,_,_] -> compound ()
+        [_,0,0,0, 0,0,0,0] -> fromCardinal ()
+        [_,_,_,_, _,_,_,_] -> compound ()
         _ -> Nothing
 
 commonCardinal : Case -> Gender -> Int -> Maybe (List Word)
