@@ -335,6 +335,12 @@ viewNumTable trn n =
                          |> Maybe.map Greek.Spell.renderWords
                          |> Maybe.map (\w -> [Word w])
                          ))
+            , tr [] (maybeRow trn n (label {href=Nothing,label="Adverb"})
+                         (\x -> bigIntToInt x
+                         |> Maybe.andThen (Greek.Spell.commonAdverb)
+                         |> Maybe.map Greek.Spell.renderWords
+                         |> Maybe.map (\w -> [Word w])
+                         ))
             , tr [] (ionianRowCommon (label trn.commonIonian) (Ionian.toMyriads True))
             , tr [] (ionianRow (label trn.diophantus) (Ionian.toDiophantus True))
             , tr [] (ionianRow (label trn.aristarchus) (Ionian.toAristarchus True))

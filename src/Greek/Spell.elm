@@ -7,6 +7,7 @@ import Html exposing (Html, Attribute, a, button, div, input, table, tbody, td, 
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Prim exposing (..)
+import Regex
 
 type Number = Singular | Plural
 type Case = Nominative | Genitive | Dative | Accusative
@@ -149,6 +150,16 @@ octacosioi = cosioi octaP
 enacosioi : Adjective
 enacosioi = cosioi enaP
 
+hapax : Adverb
+hapax p = "ἅπαξ"
+dis : Adverb
+dis p = if accented p then "δίς" else "δὶς"
+tris : Adverb
+tris p = if accented p then "τρίς" else "τρὶς"
+
+chilioi : Adjective
+chilioi = chilioiS ""
+
 conta : String -> Position -> String
 conta s p =
     case p of
@@ -158,6 +169,75 @@ conta s p =
 
 cosioi : String -> Adjective
 cosioi s = vowelStemIos (s ++ "κόσ") (s ++ "κοσ")
+
+chilioiS : String -> Adjective
+chilioiS s = vowelStemIos (s ++ "χίλ") (s ++ "χιλ")
+
+cisS : String -> Adverb
+cisS s p = accentiateFinalA s ++ "κις"
+
+deaccentPairs : List (String, String)
+deaccentPairs =
+    [("άὰᾶ", "α")
+    , ("ᾴᾲᾷ", "ᾳ")
+    , ("ήὴῆ", "η")
+    , ("ῄῂῇ", "ῃ")
+    , ("ώὼῶ", "ω")
+    , ("ῴῲῷ", "ῳ")
+    , ("ίὶ", "ι")
+    , ("ύὺ", "υ")
+    , ("έὲ", "ε")
+    , ("όὸ", "ο")
+    , ("ἄἂἆ", "ἀ")
+    , ("ᾄᾂᾆ", "ᾀ")
+    , ("ἤἢἦ", "ἠ")
+    , ("ᾔᾒᾖ", "ᾐ")
+    , ("ὤὢὦ", "ὠ")
+    , ("ᾤᾢᾦ", "ᾠ")
+    , ("ἴἲ", "ἰ")
+    , ("ὔὒ", "ὐ")
+    , ("ἔἒ", "ἐ")
+    , ("ὄὂ", "ὀ")
+    , ("ἅἃἇ", "ἁ")
+    , ("ᾅᾃᾇ", "ᾁ")
+    , ("ἥἣἧ", "ἡ")
+    , ("ᾕᾓᾗ", "ᾑ")
+    , ("ὥὣὧ", "ὡ")
+    , ("ᾥᾣᾧ", "ᾡ")
+    , ("ἵἳ", "ἱ")
+    , ("ὕὓ", "ὑ")
+    , ("ἕἓ", "ἑ")
+    , ("ὅὃ", "ὁ")
+    , ("ΐῒ", "ϊ")
+    , ("ΰῢ", "ϋ")
+    ]
+
+
+
+deaccentReplacer m =
+        let s = m.match in
+        case List.filter (\(pat, r) -> String.contains s pat) deaccentPairs |> List.head of
+            Nothing -> s
+            Just (_, r) -> r
+
+deaccent : String -> String
+deaccent str =
+    let patten = "[" ++ (List.map (\(pat,_) -> pat) deaccentPairs |> String.join "") ++ "]" in
+    case Regex.fromString patten of
+        Nothing -> str
+        Just regex ->
+            Regex.replace regex deaccentReplacer str
+
+compoundForm : String -> String
+compoundForm str =
+    deaccent str
+    |> String.replace "ς" "σ"
+
+accentiateFinalA : String -> String
+accentiateFinalA str =
+    if String.right 1 str == "α"
+    then String.dropRight 1 str ++ "ά"
+    else str
 
 -- ToDo: Support enclitics
 vowelStemIos : String -> String -> Adjective
@@ -245,6 +325,11 @@ commonCardinalFromDigits c g n =
             |> List.intersperse [cai]
             |> List.concat
     in
+    let reorder4 tx ty tz tw =
+            List.filterMap identity [tw, tz, ty, tx]
+            |> List.intersperse [cai]
+            |> List.concat
+    in
     let digit zeros x =
             if x == 0
             then Just Nothing
@@ -297,12 +382,60 @@ commonCardinalFromDigits c g n =
                  (digit 2 x)
                  (digit 1 y)
                  (digit 0 z)
+        [1,0,0,0] -> Just [pl chilioi]
+        [x,0,0,0] ->
+            case commonAdverbFromDigits [x] |> Maybe.map renderWords of
+                Nothing -> Nothing
+                Just p -> Just [pl (chilioiS (compoundForm p))]
+        [x,y,z,w] -> Maybe.map4 reorder4
+                 (digit 3 x)
+                 (digit 2 y)
+                 (digit 1 z)
+                 (digit 0 w)
+        _ -> Nothing
+
+commonAdverbFromDigits : List Int -> Maybe (List Word)
+commonAdverbFromDigits n =
+    let adv w = Word w in
+    let reorder2 tx ty =
+            List.filterMap identity [ty, tx]
+            |> List.intersperse [cai]
+            |> List.concat
+    in
+    let reorder3 tx ty tz =
+            List.filterMap identity [tz, ty, tx]
+            |> List.intersperse [cai]
+            |> List.concat
+    in
+    let digit zeros x =
+            if x == 0
+            then Just Nothing
+            else
+              x :: (List.repeat zeros 0)
+              |> commonAdverbFromDigits
+              |> Maybe.map Just
+    in
+    case n of
+        [1] -> Just [adv hapax]
+        [2] -> Just [adv dis]
+        [3] -> Just [adv tris]
+        [4] -> Just [cisS tetraP |> adv]
+        [5] -> Just [cisS pentaP |> adv]
+        [6] -> Just [cisS hexaP |> adv]
+        [7] -> Just [cisS heptaP |> adv]
+        [8] -> Just [cisS octaP |> adv]
+        [9] -> Just [cisS enaP |> adv]
         _ -> Nothing
 
 commonCardinal : Case -> Gender -> Int -> Maybe (List Word)
 commonCardinal c g n =
     Digits.explodeIntoDigits n
     |> commonCardinalFromDigits c g
+
+commonAdverb : Int -> Maybe (List Word)
+commonAdverb n =
+    Digits.explodeIntoDigits n
+    |> commonAdverbFromDigits
 
 
 type Word = Word (Position -> String) | Enclitic (Position -> String) | Punctation String
