@@ -51,9 +51,14 @@ reactorFlags =
           , sexagesimalFormat = "Input in modern sexagesimal notation. E.g., 12;34,5 (meaning 12°34′5″)"
           , fractionButton = "fraction"
           , fractionFormat = "Input a fraction or a series of unit fractions. E.g., 355/113 or 1/2+1/3+1/5"
-          , spellSingMasc =
+          , experimentalNote = "* Experimental"
+          , cardinalSingMascDesc =
                 { href= Nothing
-                , label = "Spell (nominative masculine form)"
+                , label = "Cardinal (nominative masculine form, descending order)*"
+                }
+          , adverbial =
+                { href= Nothing
+                , label = "Adverbial"
                 }
           , attic =
                 { href= Just "#attic"
@@ -93,11 +98,11 @@ reactorFlags =
                 }
           , sexagesimal =
                 { href = Just "#sexagesimal"
-                , label = "Sexagesimal (EXPERIMENTAL)"
+                , label = "Sexagesimal*"
                 }
           , sexagesimalPtolemy =
                 { href = Just "#sexagesimal-ptolemy"
-                , label = "Sexagesimal Ptolemy (EXPERIMENTAL)"
+                , label = "Sexagesimal Ptolemy*"
                 }
           }
     }
@@ -116,7 +121,9 @@ type alias Translations =
   , sexagesimalFormat: String
   , fractionButton: String
   , fractionFormat: String
-  , spellSingMasc: Label
+  , experimentalNote: String
+  , cardinalSingMascDesc: Label
+  , adverbial: Label
   , attic: Label
   , commonIonian: Label
   , diophantus: Label
@@ -242,6 +249,7 @@ view model =
             , input [ placeholder model.translations.numberToConvert, value model.input, onInput Change ] []
             , div [] [ text trn.decimalFormat ]
             , viewNumTable model.translations Nothing
+            , div [] [ text trn.experimentalNote ]
             ]
         NumInt (Just n) ->
           div []
@@ -251,6 +259,7 @@ view model =
             , button [ onClick Decrement ] [ text "-" ]
             , div [] [ text trn.decimalFormat ]
             , viewNumTable model.translations (Just n)
+            , div [] [ text trn.experimentalNote ]
             ]
         NumFrac n ->
           div []
@@ -265,6 +274,7 @@ view model =
             , input [ placeholder model.translations.numberToConvert, value model.input, onInput Change ] []
             , div [] [ text trn.sexagesimalFormat ]
             , viewSgTable model.translations Nothing
+            , div [] [ text trn.experimentalNote ]
             ]
         NumSg (Just n) ->
           div []
@@ -274,6 +284,7 @@ view model =
             -- , button [ onClick Decrement ] [ text "-" ]
             , div [] [ text trn.sexagesimalFormat ]
             , viewSgTable model.translations (Just n)
+            , div [] [ text trn.experimentalNote ]
             ]
 
 row l c =
@@ -311,6 +322,7 @@ maybeRow trn n l f =
                 Nothing -> row [l] [text trn.tooBig]
                 Just c -> row [l] (viewElements c)
 
+viewNumTable : Translations -> Maybe BigInt -> Html msg
 viewNumTable trn n =
     let ionianRowCommon l f =
             case n of
@@ -329,13 +341,13 @@ viewNumTable trn n =
     let body =
             [ tr [] (origRow trn (Maybe.map BigInt.toString n |> Maybe.withDefault ""))
             , tr [] (maybeRow trn n (label trn.attic) (Attic.toAttic Attic.generalSymbols))
-            , tr [] (maybeRow trn n (label trn.spellSingMasc)
+            , tr [] (maybeRow trn n (label trn.cardinalSingMascDesc)
                          (\x -> bigIntToInt x
                          |> Maybe.andThen (Greek.Spell.commonCardinal Nominative Masculine)
                          |> Maybe.map Greek.Spell.renderWords
                          |> Maybe.map (\w -> [Word w])
                          ))
-            , tr [] (maybeRow trn n (label {href=Nothing,label="Adverb"})
+            , tr [] (maybeRow trn n (label trn.adverbial)
                          (\x -> bigIntToInt x
                          |> Maybe.andThen (Greek.Spell.commonAdverb)
                          |> Maybe.map Greek.Spell.renderWords
@@ -351,6 +363,7 @@ viewNumTable trn n =
         [ tbody [] body
         ]
 
+viewFracTable : Translations -> Maybe Frac -> Html msg
 viewFracTable trn n =
     let fracRow l f =
             case n |> Maybe.andThen f of
@@ -366,6 +379,7 @@ viewFracTable trn n =
         [ tbody [] body
         ]
 
+viewSgTable : Translations -> Maybe Sexagesimal -> Html msg
 viewSgTable trn n =
     let st = Maybe.andThen sexagesimalToTriple n in
     let body =
