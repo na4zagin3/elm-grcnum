@@ -340,7 +340,6 @@ viewNumTable trn n =
                         (c, True) -> row [l, text trn.extended] (viewElements c) in
     let body =
             [ tr [] (origRow trn (Maybe.map BigInt.toString n |> Maybe.withDefault ""))
-            , tr [] (maybeRow trn n (label trn.attic) (Attic.toAttic Attic.generalSymbols))
             , tr [] (maybeRow trn n (label trn.cardinalSingMascDesc)
                          (\x -> bigIntToInt x
                          |> Maybe.andThen (Greek.Spell.commonCardinal Nominative Masculine)
@@ -353,6 +352,7 @@ viewNumTable trn n =
                          |> Maybe.map Greek.Spell.renderWords
                          |> Maybe.map (\w -> [Word w])
                          ))
+            , tr [] (maybeRow trn n (label trn.attic) (Attic.toAttic Attic.generalSymbols))
             , tr [] (ionianRowCommon (label trn.commonIonian) (Ionian.toMyriads True))
             , tr [] (ionianRow (label trn.diophantus) (Ionian.toDiophantus True))
             , tr [] (ionianRow (label trn.aristarchus) (Ionian.toAristarchus True))
