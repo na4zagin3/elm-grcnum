@@ -99,6 +99,7 @@ commonCardinalNomMasc = Dict.fromList
     , (10000, "μύριοι")
     , (20000, "δισμύριοι")
     , (100000, "δεκακισμύριοι")
+    , (1230000, "τρισμύριοι καὶ εἰκοσακισμύριοι καὶ ἑκατοντακισμύριοι")
     ]
 
 suite : Test
@@ -115,7 +116,7 @@ suite =
         , describe "Greek.Spell.commonCardinal"
               [ test "test by golden set" <|
                     \_ ->
-                    commonAdverbDict
+                    commonCardinalNomMasc
                     |> Dict.map (\k _ -> Greek.Spell.commonCardinal Nominative Masculine k |> Maybe.map Greek.Spell.renderWords)
                     |> Expect.equalDicts (Dict.map (\_ -> Just) commonCardinalNomMasc)
               ]

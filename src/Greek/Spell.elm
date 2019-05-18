@@ -408,11 +408,11 @@ commonCardinalFromDigits c g n =
         [1, 0,0,0,0] -> Just [pl (myrioiS "")]
         [x, 0,0,0,0] -> fromAdverb myrioiS [x]
         [_, _,_,_,_] -> compound ()
-        [x,y, 0,0,0,0] -> fromAdverb myrioiS [x,y]
+        [x,0, 0,0,0,0] -> fromAdverb myrioiS [x,0]
         [_,_, _,_,_,_] -> compound ()
-        [x,y,z, 0,0,0,0] -> fromAdverb myrioiS [x,y,z]
+        [x,0,0, 0,0,0,0] -> fromAdverb myrioiS [x,0,0]
         [_,_,_, _,_,_,_] -> compound ()
-        [x,y,z,w, 0,0,0,0] -> fromAdverb myrioiS [x,y,z,w]
+        [x,0,0,0, 0,0,0,0] -> fromAdverb myrioiS [x,0,0,0]
         [_,_,_,_, _,_,_,_] -> compound ()
         _ -> Nothing
 
