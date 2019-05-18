@@ -2,7 +2,7 @@ module Greek.SpellSpec exposing (..)
 
 import BigInt
 import Dict exposing (Dict)
-import Greek.Spell
+import Greek.Spell exposing (Gender(..), Case(..))
 import Expect exposing (Expectation, pass, fail)
 import Fuzz exposing (Fuzzer, int, list, string, tuple, tuple3)
 import Test exposing (..)
@@ -54,6 +54,53 @@ commonAdverbDict = Dict.fromList
     , (100000, "δεκακισμυριάκις")
     ]
 
+commonCardinalNomMasc : Dict Int String
+commonCardinalNomMasc = Dict.fromList
+    [ (1, "εἷς")
+    , (2, "δύο")
+    , (3, "τρεῖς")
+    , (4, "τέτταρες")
+    , (5, "πέντε")
+    , (6, "ἕξ")
+    , (7, "ἑπτά")
+    , (8, "ὀκτώ")
+    , (9, "ἐννέα")
+    , (10, "δέκα")
+    , (11, "ἕνδεκα")
+    , (12, "δώδεκα")
+    , (13, "τρεῖς καὶ δέκα")
+    , (14, "τέτταρες καὶ δέκα")
+    , (15, "πεντεκαίδεκα")
+    , (16, "ἑκκαίδεκα")
+    , (17, "ἑπτακαίδεκα")
+    , (18, "ὀκτωκαίδεκα")
+    , (19, "ἐννεακαίδεκα")
+    , (20, "εἴκοσι(ν)")
+    , (21, "εἷς καὶ εἴκοσι(ν)")
+    , (30, "τριάκοντα")
+    , (40, "τετταράκοντα")
+    , (50, "πεντήκοντα")
+    , (60, "ἑξήκοντα")
+    , (70, "ἑβδομήκοντα")
+    , (80, "ὀγδοήκοντα")
+    , (90, "ἐνενήκοντα")
+    , (100, "ἑκατόν")
+    , (200, "διακόσιοι")
+    , (300, "τριακόσιοι")
+    , (400, "τετρακόσιοι")
+    , (500, "πεντακόσιοι")
+    , (600, "ἑξακόσιοι")
+    , (700, "ἑπτακόσιοι")
+    , (800, "ὀκτακόσιοι")
+    , (900, "ἐνακόσιοι")
+    , (1000, "χίλιοι")
+    , (2000, "δισχίλιοι")
+    , (3000, "τρισχίλιοι")
+    , (10000, "μύριοι")
+    , (20000, "δισμύριοι")
+    , (100000, "δεκακισμύριοι")
+    ]
+
 suite : Test
 suite =
     describe "Greek.Spell"
@@ -63,6 +110,14 @@ suite =
                     commonAdverbDict
                     |> Dict.map (\k _ -> Greek.Spell.commonAdverb k |> Maybe.map Greek.Spell.renderWords)
                     |> Expect.equalDicts (Dict.map (\_ -> Just) commonAdverbDict)
+              ]
+
+        , describe "Greek.Spell.commonCardinal"
+              [ test "test by golden set" <|
+                    \_ ->
+                    commonAdverbDict
+                    |> Dict.map (\k _ -> Greek.Spell.commonCardinal Nominative Masculine k |> Maybe.map Greek.Spell.renderWords)
+                    |> Expect.equalDicts (Dict.map (\_ -> Just) commonCardinalNomMasc)
               ]
 
         ]
