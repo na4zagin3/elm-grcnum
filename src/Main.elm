@@ -41,7 +41,7 @@ reactorFlags : Flags
 reactorFlags =
     { translations =
           { extended = " (extended)"
-          , tooBig = "too big"
+          , tooBig = "unsupported/too big"
           , inputIn = "Input in "
           , numberToConvert = "Number to convert"
           , convertFrom = "Converted from"

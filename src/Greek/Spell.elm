@@ -409,11 +409,11 @@ commonCardinalFromDigits c g n =
         [x, 0,0,0,0] -> fromAdverb myrioiS [x]
         [_, _,_,_,_] -> compound ()
         [x,0, 0,0,0,0] -> fromAdverb myrioiS [x,0]
-        [_,_, _,_,_,_] -> compound ()
-        [x,0,0, 0,0,0,0] -> fromAdverb myrioiS [x,0,0]
-        [_,_,_, _,_,_,_] -> compound ()
-        [x,0,0,0, 0,0,0,0] -> fromAdverb myrioiS [x,0,0,0]
-        [_,_,_,_, _,_,_,_] -> compound ()
+        -- [_,_, _,_,_,_] -> compound ()
+        -- [x,0,0, 0,0,0,0] -> fromAdverb myrioiS [x,0,0]
+        -- [_,_,_, _,_,_,_] -> compound ()
+        -- [x,0,0,0, 0,0,0,0] -> fromAdverb myrioiS [x,0,0,0]
+        -- [_,_,_,_, _,_,_,_] -> compound ()
         _ -> Nothing
 
 maybesToList : List (Maybe a) -> Maybe (List a)
