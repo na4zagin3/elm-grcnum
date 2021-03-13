@@ -503,7 +503,7 @@ commonOrdinalFromDigits c g nu n =
             then Just Nothing
             else
               x :: (List.repeat zeros 0)
-              |> commonCardinalFromDigits c g
+              |> commonOrdinalFromDigits c g nu
               |> Maybe.map Just
     in
     let compound () =
@@ -512,11 +512,46 @@ commonOrdinalFromDigits c g nu n =
                 |> maybesToList
                 |> Maybe.map (reorder)
     in
+    let stos s =
+            w True (s ++ "στ") (s ++ "στ")
+    in
+    let ostos s =
+            w True (s ++ "οστ") (s ++ "οστ")
+    in
+    let fromCardinal wt t =
+            case commonCardinalFromDigits Nominative Neuter n |> Maybe.map renderWords of
+                Nothing -> Nothing
+                Just p -> Just [p |> deaccent |> String.slice 0 t |> wt] in
     case n of
         [1] -> Just [w False "πρῶτ" "πρώτ"]
         [2] -> Just [w False "δεύτερ" "δευτέρ"]
         [3] -> Just [w False "τρίτ" "τρίτ"]
         [4] -> Just [w False "τέταρτ" "τετάρτ"]
+        [5] -> Just [w False "πέμπτ" "πέμπτ"]
+        [6] -> Just [w False "ἕκτ" "ἕκτ"]
+        [7] -> Just [w False "ἕβδομ" "ἑβδόμ"]
+        [8] -> Just [w False "ὄγδο" "ὀγδό"]
+        [9] -> Just [w False "ἔνατ" "ἐνάτ"]
+        [1,0] -> Just [w False "δέκατ" "δεκάτ"]
+        [1,1] -> Just [w False "ἑνδέκατ" "ἑνδεκάτ"]
+        [1,2] -> Just [w False "δωδέκατ" "δωδεκάτ"]
+        [2,0] -> Just [ostos "εἰκ"]
+        [x,0] -> fromCardinal ostos -4
+        [x,y] -> compound ()
+        [1,0,0] -> fromCardinal ostos -2
+        [_,0,0] -> fromCardinal ostos -1
+        [_,_,_] -> compound ()
+        [1,0,0,0] -> fromCardinal stos -1
+        [_,0,0,0] -> fromCardinal ostos -1
+        [_,_,_,_] -> compound ()
+        [_, 0,0,0,0] -> fromCardinal ostos -1
+        [_, _,_,_,_] -> compound ()
+        [_,_, 0,0,0,0] -> fromCardinal ostos -1
+        [_,_, _,_,_,_] -> compound ()
+        [_,_,_, 0,0,0,0] -> fromCardinal ostos -1
+        [_,_,_, _,_,_,_] -> compound ()
+        [_,_,_,_, 0,0,0,0] -> fromCardinal ostos -1
+        [_,_,_,_, _,_,_,_] -> compound ()
         _ -> Nothing
 maybesToList : List (Maybe a) -> Maybe (List a)
 maybesToList =
