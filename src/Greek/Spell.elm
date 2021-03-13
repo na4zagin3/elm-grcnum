@@ -708,8 +708,9 @@ plousFromDigits c g nu n =
         [1] -> Just [plousP "ἁ" c g nu |> Word]
         [2] -> fromAdverb -1
         [3] -> fromAdverb -1
+        [9] -> Just [plousP enneaP c g nu |> Word]
         [_] -> fromAdverb -3
-        [1,_] -> fromAdverb -3
+        [1,0] -> fromAdverb -3
         [_,0] -> fromAdverb -3
         _ -> Nothing
 
