@@ -50,24 +50,24 @@ toApolloniusIsExtended : Myriads -> Bool
 toApolloniusIsExtended m =
     List.length m >= 10000
 
-toApolloniusSeries : List Element -> List Element -> List Element -> Bool -> Myriads -> List Element
-toApolloniusSeries sep mSymb monad top myriads =
+toApolloniusSeries : Bool -> List Element -> List Element -> List Element -> Bool -> Myriads -> List Element
+toApolloniusSeries monadPrefix sep mSymb monad top myriads =
     let decolateMyriad m = if top then [Overline m] else m in
     let f n d =
             case (n, d) of
                   (_, 0) -> Nothing
                   (0, _) ->
                       let c = [convertSimple d |> Word] |> decolateMyriad in
-                      (if List.length myriads <= 1
-                        then c
-                        else monad ++ c)
+                      (if List.length myriads > 1 || monadPrefix
+                        then monad ++ c
+                        else c)
                       |> NoBreak
                       |> List.singleton
                       |> Just
                   (_, _) ->
                       let m = BigInt.fromInt n
                               |> explodeIntoMyriads
-                              |> toApolloniusSeries sep mSymb monad False
+                              |> toApolloniusSeries False sep mSymb monad False
                               |> Myriad mSymb in
                       [m, Word myriadSeparator] ++ ([convertSimple d |> Word] |> decolateMyriad)
                       |> NoBreak
@@ -78,21 +78,21 @@ toApolloniusSeries sep mSymb monad top myriads =
 toApollonius : Bool -> BigInt.BigInt -> (List Element, Bool)
 toApollonius ol num =
     let m = explodeIntoMyriads num in
-    (toApolloniusSeries [Space, Word "καὶ", Space] [Word smallMyriadSymbol] [Myriad [Word smallMyriadSymbol] [Word "ο"], Word myriadSeparator] ol m
+    (toApolloniusSeries True [Space, Word "καὶ", Space] [Word smallMyriadSymbol] [Myriad [Word smallMyriadSymbol] [Word "ο"], Word myriadSeparator] ol m
     , toApolloniusIsExtended m
     )
 
 toModifiedApollonius : Bool -> BigInt.BigInt -> (List Element, Bool)
 toModifiedApollonius ol num =
     let m = explodeIntoMyriads num in
-    (toApolloniusSeries [Space, Word "καὶ", Space] [Word myriadSymbol] [Myriad [Word smallMyriadSymbol] [Word "ο"], Word myriadSeparator] ol m
+    (toApolloniusSeries True [Space, Word "καὶ", Space] [Word myriadSymbol] [Myriad [Word smallMyriadSymbol] [Word "ο"], Word myriadSeparator] ol m
     , toApolloniusIsExtended m
     )
 
 toApolloniusWithComma : Bool -> BigInt.BigInt -> (List Element, Bool)
 toApolloniusWithComma ol num =
     let m = explodeIntoMyriads num in
-    (toApolloniusSeries [Word ","] [Word smallMyriadSymbol] [] ol m
+    (toApolloniusSeries False [Word ","] [Word smallMyriadSymbol] [] ol m
     , toApolloniusIsExtended m
     )
 
