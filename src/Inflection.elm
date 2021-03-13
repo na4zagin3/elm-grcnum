@@ -21,10 +21,27 @@ emptyInflection =
 
 renderInflectionEn : InflectionData -> String
 renderInflectionEn i =
-    let toString x = Debug.toString x |> String.toLower in
-    [ Maybe.map toString i.case_
-    , Maybe.map toString i.gender
-    , Maybe.map toString i.number
+    [ case i.case_ of
+        Nothing -> Nothing
+        Just case_ ->
+          case case_ of
+            Nominative -> Just "nom."
+            Accusative -> Just "acc."
+            Genitive -> Just "gen."
+            Dative -> Just "dat."
+    , case i.gender of
+        Nothing -> Nothing
+        Just gender ->
+          case gender of
+            Masculine -> Just "masc."
+            Feminine -> Just "fem."
+            Neuter -> Just "neut."
+    , case i.number of
+        Nothing -> Nothing
+        Just number ->
+          case number of
+            Singular -> Just "sg."
+            Plural -> Just "pl."
     ]
     |> List.filterMap identity
     |> String.join " "

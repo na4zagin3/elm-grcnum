@@ -55,15 +55,15 @@ reactorFlags =
           , experimentalNote = "* Experimental"
           , cardinalAscDesc =
                 { href= Nothing
-                , label = "Cardinal (ascending order)*"
+                , label = "Cardinal (ascending)*"
                 }
           , cardinalDescDesc =
                 { href= Nothing
-                , label = "Cardinal (descending order with καί)*"
+                , label = "Cardinal (descending, with καί)*"
                 }
           , cardinalDescJuxtDesc =
                 { href= Nothing
-                , label = "Cardinal (descending order without καί)*"
+                , label = "Cardinal (descending, without καί)*"
                 }
           , ordinalDesc =
                 { href= Nothing
@@ -71,7 +71,7 @@ reactorFlags =
                 }
           , adverbial =
                 { href= Nothing
-                , label = "Adverbial"
+                , label = "Adverbial*"
                 }
           , plous =
                 { href= Nothing
@@ -358,8 +358,8 @@ view model =
             ]
 
 row l inf c =
-    [ td [style "width" "13em"] l
-    , td [style "width" "15em"] inf
+    [ td [style "width" "6em"] l
+    , td [style "width" "6em"] inf
     , td [style "min-height" "2.5em"] c
     ]
 label l =
