@@ -17,7 +17,7 @@ toAttic ss num =
             let f ts = [String.join "" ts |> Word] in
             convert ss (explodeIntoDigits n |> List.reverse) []
             |> Maybe.map f in
-    if BigInt.gt num intMax
+    if BigInt.gt num intMax || BigInt.gte zero num
     then Nothing
     else String.toInt (BigInt.toString num)
         |> Maybe.andThen convFromInt
