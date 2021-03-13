@@ -54,7 +54,7 @@ reactorFlags =
           , experimentalNote = "* Experimental"
           , cardinalSingMascDesc =
                 { href= Nothing
-                , label = "Cardinal (nominative masculine form, descending order)*"
+                , label = "Cardinal (nominative masculine form, ascending order)*"
                 }
           , ordinalSingMascDesc =
                 { href= Nothing
@@ -335,7 +335,7 @@ viewNumTable trn n =
                 Just np ->
                     case f np of
                         (c, False) -> row [l] (viewElements c)
-                        (, True) -> row [l] [text trn.tooBig] in
+                        (_, True) -> row [l] [text trn.tooBig] in
     let ionianRow l f =
             case n of
                 Nothing -> row [l] [text ""]
@@ -347,7 +347,7 @@ viewNumTable trn n =
             [ tr [] (origRow trn (Maybe.map BigInt.toString n |> Maybe.withDefault ""))
             , tr [] (maybeRow trn n (label trn.cardinalSingMascDesc)
                          (\x -> bigIntToInt x
-                         |> Maybe.andThen (Greek.Spell.commonCardinal Nominative Masculine)
+                         |> Maybe.andThen (Greek.Spell.commonCardinal Greek.Spell.Ascending Nominative Masculine)
                          |> Maybe.map Greek.Spell.renderWords
                          |> Maybe.map (\w -> [Word w])
                          ))

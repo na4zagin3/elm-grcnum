@@ -2,7 +2,7 @@ module Greek.SpellSpec exposing (..)
 
 import BigInt
 import Dict exposing (Dict)
-import Greek.Spell exposing (Gender(..), Case(..), Number(..))
+import Greek.Spell exposing (Gender(..), Case(..), Number(..), CardinalOrder(..))
 import Expect exposing (Expectation, pass, fail)
 import Fuzz exposing (Fuzzer, int, list, string, tuple, tuple3)
 import Test exposing (..)
@@ -161,10 +161,10 @@ suite =
               ]
 
         , describe "Greek.Spell.commonCardinal"
-              [ test "test by golden set" <|
+              [ test "test by golden set (Ascending)" <|
                     \_ ->
                     commonCardinalNomMasc
-                    |> Dict.map (\k _ -> Greek.Spell.commonCardinal Nominative Masculine k |> Maybe.map Greek.Spell.renderWords)
+                    |> Dict.map (\k _ -> Greek.Spell.commonCardinal Ascending Nominative Masculine k |> Maybe.map Greek.Spell.renderWords)
                     |> Expect.equalDicts (Dict.map (\_ -> Just) commonCardinalNomMasc)
               ]
 

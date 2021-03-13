@@ -9,6 +9,11 @@ import Html.Events exposing (onClick, onInput)
 import Prim exposing (..)
 import Regex
 
+type CardinalOrder =
+      Ascending
+    | Descending
+    | DescendingJuxtapose
+
 type Number = Singular | Plural
 type Case = Nominative | Genitive | Dative | Accusative
 type Gender = Masculine | Neuter | Feminine
@@ -409,21 +414,33 @@ enneaP = "ἐννεα"
 
 hecatontaP = "ἑκατοντα"
 
-commonCardinalFromDigits : Case -> Gender -> List Int -> Maybe (List Word)
-commonCardinalFromDigits c g n =
+commonCardinalFromDigits : CardinalOrder -> Case -> Gender -> List Int -> Maybe (List Word)
+commonCardinalFromDigits co c g n =
     let sg w = w c g Singular |> Word in
     let pl w = w c g Plural |> Word in
     let reorder xs =
-            List.filterMap identity xs
-            |> List.intersperse [cai]
-            |> List.concat
+            let filtered = List.filterMap identity xs in
+            case co of
+              Ascending ->
+                  filtered
+                |> List.intersperse [cai]
+                |> List.concat
+              Descending ->
+                  filtered
+                |> List.reverse
+                |> List.intersperse [cai]
+                |> List.concat
+              DescendingJuxtapose ->
+                  filtered
+                |> List.reverse
+                |> List.concat
     in
     let digit zeros x =
             if x == 0
             then Just Nothing
             else
               x :: (List.repeat zeros 0)
-              |> commonCardinalFromDigits c g
+              |> commonCardinalFromDigits Ascending c g
               |> Maybe.map Just
     in
     let compound () =
@@ -519,7 +536,7 @@ commonOrdinalFromDigits c g nu n =
             w True (s ++ "οστ") (s ++ "οστ")
     in
     let fromCardinal wt t =
-            case commonCardinalFromDigits Nominative Neuter n |> Maybe.map renderWords of
+            case commonCardinalFromDigits Ascending Nominative Neuter n |> Maybe.map renderWords of
                 Nothing -> Nothing
                 Just p -> Just [p |> deaccent |> String.slice 0 t |> wt] in
     case n of
@@ -574,7 +591,7 @@ commonAdverbFromDigits n =
               |> Maybe.map Just
     in
     let fromCardinal () =
-            case commonCardinalFromDigits Nominative Neuter n |> Maybe.map renderWords of
+            case commonCardinalFromDigits Ascending Nominative Neuter n |> Maybe.map renderWords of
                 Nothing -> Nothing
                 Just p -> Just [cisS p |> adv] in
     let compound () =
@@ -615,10 +632,10 @@ commonAdverbFromDigits n =
         [_,_,_,_, _,_,_,_] -> compound ()
         _ -> Nothing
 
-commonCardinal : Case -> Gender -> Int -> Maybe (List Word)
-commonCardinal c g n =
+commonCardinal : CardinalOrder -> Case -> Gender -> Int -> Maybe (List Word)
+commonCardinal co c g n =
     Digits.explodeIntoDigits n
-    |> commonCardinalFromDigits c g
+    |> commonCardinalFromDigits co c g
 
 commonOrdinal : Case -> Gender -> Number -> Int -> Maybe (List Word)
 commonOrdinal c g nu n =
