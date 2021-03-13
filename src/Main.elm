@@ -64,6 +64,10 @@ reactorFlags =
                 { href= Nothing
                 , label = "Adverbial"
                 }
+          , plous =
+                { href= Nothing
+                , label = "Multiplicative"
+                }
           , attic =
                 { href= Just "#attic"
                 , label = "Attic"
@@ -133,6 +137,7 @@ type alias Translations =
   , cardinalSingMascDesc: Label
   , ordinalSingMascDesc: Label
   , adverbial: Label
+  , plous: Label
   , attic: Label
   , commonIonian: Label
   , diophantus: Label
@@ -365,6 +370,12 @@ viewNumTable trn n =
             , tr [] (maybeRow trn n (label trn.adverbial)
                          (\x -> bigIntToInt x
                          |> Maybe.andThen (Greek.Spell.commonAdverb)
+                         |> Maybe.map Greek.Spell.renderWords
+                         |> Maybe.map (\w -> [Word w])
+                         ))
+            , tr [] (maybeRow trn n (label trn.plous)
+                         (\x -> bigIntToInt x
+                         |> Maybe.andThen (Greek.Spell.plous Nominative Masculine Singular)
                          |> Maybe.map Greek.Spell.renderWords
                          |> Maybe.map (\w -> [Word w])
                          ))
