@@ -20,6 +20,10 @@ jobs:
         with:
           elm-version: 0.19.1
 
+      - name: Install elm-test
+        run: |
+          npm intall -g elm-test
+          
       - name: Checkout code
         uses: actions/checkout@v2
 
