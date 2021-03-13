@@ -46,11 +46,12 @@ reactorFlags =
           , numberToConvert = "Number to convert"
           , convertFrom = "Converted from"
           , decimalButton = "decimal"
-          , decimalFormat = "Input a number without separators. E.g., 1234"
+          , decimalFormat = "Input a number without separators. E.g., “1234”."
           , sexagesimalButton = "sexagesimal"
-          , sexagesimalFormat = "Input in modern sexagesimal notation. E.g., 12;34,5 (meaning 12°34′5″)"
+          , sexagesimalFormat = "Input in modern sexagesimal notation. E.g., “12;34,5” (meaning 12°34′5″)."
           , fractionButton = "fraction"
-          , fractionFormat = "Input a fraction or a series of unit fractions. E.g., 355/113 or 1/2+1/3+1/5"
+          , fractionFormat = "Input a fraction or a series of unit fractions. E.g., “355/113” or “1/2+1/3+1/5”."
+          , inflectionSlotDesc = "Input value may be followed by a space and inflection specifiers like “123 acc. fem. sg.”."
           , experimentalNote = "* Experimental"
           , cardinalAscDesc =
                 { href= Nothing
@@ -141,6 +142,7 @@ type alias Translations =
   , sexagesimalFormat: String
   , fractionButton: String
   , fractionFormat: String
+  , inflectionSlotDesc: String
   , experimentalNote: String
   , cardinalAscDesc: Label
   , cardinalDescDesc: Label
@@ -312,6 +314,7 @@ view model =
             [ formatSelector
             , input [ placeholder model.translations.numberToConvert, value model.input, onInput Change ] []
             , div [] [ text trn.decimalFormat ]
+            , div [] [ text trn.inflectionSlotDesc ]
             , viewNumTable model.translations model.declension Nothing
             , div [] [ text trn.experimentalNote ]
             ]
@@ -322,6 +325,7 @@ view model =
             , button [ onClick Increment ] [ text "+" ]
             , button [ onClick Decrement ] [ text "-" ]
             , div [] [ text trn.decimalFormat ]
+            , div [] [ text trn.inflectionSlotDesc ]
             , viewNumTable model.translations model.declension (Just n)
             , div [] [ text trn.experimentalNote ]
             ]
@@ -330,6 +334,7 @@ view model =
             [ formatSelector
             , input [ placeholder model.translations.numberToConvert, value model.input, onInput Change ] []
             , div [] [ text trn.fractionFormat ]
+            , div [] [ text trn.inflectionSlotDesc ]
             , viewFracTable model.translations n
             ]
         NumSg Nothing ->
@@ -337,6 +342,7 @@ view model =
             [ formatSelector
             , input [ placeholder model.translations.numberToConvert, value model.input, onInput Change ] []
             , div [] [ text trn.sexagesimalFormat ]
+            , div [] [ text trn.inflectionSlotDesc ]
             , viewSgTable model.translations Nothing
             , div [] [ text trn.experimentalNote ]
             ]
