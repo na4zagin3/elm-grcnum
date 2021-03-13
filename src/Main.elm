@@ -8,11 +8,11 @@ import Greek.Ionian as Ionian
 import Greek.Fraction
 import Greek.Sexagesimal
 import Greek.Spell
-import Greek.Spell exposing (Gender(..), Case(..), Number(..))
 import Fraction exposing (Frac(..))
 import Html exposing (Html, Attribute, a, button, div, input, table, tbody, td, tr, text, span, wbr)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
+import Inflection exposing (Gender(..), Case(..), Number(..))
 import Sexagesimal exposing (Sexagesimal)
 import Prim exposing (..)
 
@@ -52,13 +52,21 @@ reactorFlags =
           , fractionButton = "fraction"
           , fractionFormat = "Input a fraction or a series of unit fractions. E.g., 355/113 or 1/2+1/3+1/5"
           , experimentalNote = "* Experimental"
-          , cardinalSingMascDesc =
+          , cardinalAscDesc =
                 { href= Nothing
-                , label = "Cardinal (nominative masculine form, ascending order)*"
+                , label = "Cardinal (ascending order)*"
                 }
-          , ordinalSingMascDesc =
+          , cardinalDescDesc =
                 { href= Nothing
-                , label = "Ordinal (nominative masculine form, descending order)*"
+                , label = "Cardinal (descending order with καί)*"
+                }
+          , cardinalDescJuxtDesc =
+                { href= Nothing
+                , label = "Cardinal (descending order without καί)*"
+                }
+          , ordinalDesc =
+                { href= Nothing
+                , label = "Ordinal (descending order)*"
                 }
           , adverbial =
                 { href= Nothing
@@ -94,7 +102,7 @@ reactorFlags =
                 }
           , apolloniusSpelledOut =
                 { href = Just "#aristarchus"
-                , label = "Apollonius (spelled out)"
+                , label = "Apollonius (spelled out)*"
                 }
           , fracDiophantus =
                 { href = Just "#fraction-diophantus"
@@ -134,8 +142,10 @@ type alias Translations =
   , fractionButton: String
   , fractionFormat: String
   , experimentalNote: String
-  , cardinalSingMascDesc: Label
-  , ordinalSingMascDesc: Label
+  , cardinalAscDesc: Label
+  , cardinalDescDesc: Label
+  , cardinalDescJuxtDesc: Label
+  , ordinalDesc: Label
   , adverbial: Label
   , plous: Label
   , attic: Label
@@ -155,10 +165,16 @@ type alias Myriads = List (Int)
 
 type alias Label = { href: Maybe String, label: String }
 type alias Flags = { translations: Translations }
+type alias Declension =
+    { number: Number
+    , gender: Gender
+    , case_: Case
+    }
 type alias Model =
   { translations: Translations
   , content : Content
   , input : String
+  , declension : Declension
   }
 
 type Content = NumInt (Maybe BigInt)
@@ -167,7 +183,15 @@ type Content = NumInt (Maybe BigInt)
 
 init : Flags -> (Model, Cmd Msg)
 init flags =
-  ( { translations=flags.translations, content = NumInt Nothing, input = "" }
+  ( { translations=flags.translations
+    , content = NumInt Nothing
+    , input = ""
+    , declension =
+          { number = Singular
+          , gender = Masculine
+          , case_ = Nominative
+          }
+    }
   , Cmd.none)
 
 
@@ -263,7 +287,7 @@ view model =
             [ formatSelector
             , input [ placeholder model.translations.numberToConvert, value model.input, onInput Change ] []
             , div [] [ text trn.decimalFormat ]
-            , viewNumTable model.translations Nothing
+            , viewNumTable model.translations model.declension Nothing
             , div [] [ text trn.experimentalNote ]
             ]
         NumInt (Just n) ->
@@ -273,7 +297,7 @@ view model =
             , button [ onClick Increment ] [ text "+" ]
             , button [ onClick Decrement ] [ text "-" ]
             , div [] [ text trn.decimalFormat ]
-            , viewNumTable model.translations (Just n)
+            , viewNumTable model.translations model.declension (Just n)
             , div [] [ text trn.experimentalNote ]
             ]
         NumFrac n ->
@@ -302,8 +326,9 @@ view model =
             , div [] [ text trn.experimentalNote ]
             ]
 
-row l c =
-    [ td [style "width" "10em"] l
+row l inf c =
+    [ td [style "width" "13em"] l
+    , td [style "width" "15em"] inf
     , td [style "min-height" "2.5em"] c
     ]
 label l =
@@ -312,81 +337,102 @@ label l =
         Just h -> a [href h] [text l.label]
 origRow trn s =
     [ td [] [text trn.convertFrom]
+    , td [] []
     , td [ style "word-break" "break-word"]
         [text s]
     ]
 
 origElemRow trn e =
     [ td [] [text trn.convertFrom]
+    , td [] []
     , td [ style "word-break" "break-word"]
         (viewElements e)
     ]
 
 calcRow n l f =
     case n of
-        Nothing -> row [l] [text ""]
+        Nothing -> row [l] [] [text ""]
         Just np ->
             let (lext, cs) = f np in
-            row (l :: lext) cs
+            row (l :: lext) [] cs
 
-maybeRow trn n l f =
+maybeRow trn n l inf f =
     case n of
-        Nothing -> row [l] [text ""]
+        Nothing -> row [l] [] [text ""]
         Just np ->
             case f np of
-                Nothing -> row [l] [text trn.tooBig]
-                Just c -> row [l] (viewElements c)
+                Nothing -> row [l] [] [text trn.tooBig]
+                Just c -> row [l] inf (viewElements c)
 
-viewNumTable : Translations -> Maybe BigInt -> Html msg
-viewNumTable trn n =
+viewNumTable : Translations -> Declension -> Maybe BigInt -> Html msg
+viewNumTable trn inf n =
     let ionianRowCommon l f =
             case n of
-                Nothing -> row [l] [text ""]
+                Nothing -> row [l] [] [text ""]
                 Just np ->
                     case f np of
-                        (c, False) -> row [l] (viewElements c)
-                        (_, True) -> row [l] [text trn.tooBig] in
+                        (c, False) -> row [l] [] (viewElements c)
+                        (_, True) -> row [l] [] [text trn.tooBig] in
     let ionianRow l f =
             case n of
-                Nothing -> row [l] [text ""]
+                Nothing -> row [l] [] [text ""]
                 Just np ->
                     case f np of
-                        (c, False) -> row [l] (viewElements c)
-                        (c, True) -> row [l, text trn.extended] (viewElements c) in
+                        (c, False) -> row [l] [] (viewElements c)
+                        (c, True) -> row [l, text trn.extended] [] (viewElements c) in
     let body =
             [ tr [] (origRow trn (Maybe.map BigInt.toString n |> Maybe.withDefault ""))
-            , tr [] (maybeRow trn n (label trn.cardinalSingMascDesc)
+            , tr [] (maybeRow trn n (label trn.cardinalAscDesc)
+                         [text (Inflection.renderInflectionEn {case_=Just inf.case_, gender=Just inf.gender, number=Nothing})]
                          (\x -> bigIntToInt x
-                         |> Maybe.andThen (Greek.Spell.commonCardinal Greek.Spell.Ascending Nominative Masculine)
+                         |> Maybe.andThen (Greek.Spell.commonCardinal Greek.Spell.Ascending inf.case_ inf.gender)
                          |> Maybe.map Greek.Spell.renderWords
                          |> Maybe.map (\w -> [Word w])
                          ))
-            , tr [] (maybeRow trn n (label trn.ordinalSingMascDesc)
+            , tr [] (maybeRow trn n (label trn.cardinalDescDesc)
+                         [text (Inflection.renderInflectionEn {case_=Just inf.case_, gender=Just inf.gender, number=Nothing})]
                          (\x -> bigIntToInt x
-                         |> Maybe.andThen (Greek.Spell.commonOrdinal Nominative Masculine Singular)
+                         |> Maybe.andThen (Greek.Spell.commonCardinal Greek.Spell.Descending inf.case_ inf.gender)
+                         |> Maybe.map Greek.Spell.renderWords
+                         |> Maybe.map (\w -> [Word w])
+                         ))
+            , tr [] (maybeRow trn n (label trn.cardinalDescJuxtDesc)
+                         [text (Inflection.renderInflectionEn {case_=Just inf.case_, gender=Just inf.gender, number=Nothing})]
+                         (\x -> bigIntToInt x
+                         |> Maybe.andThen (Greek.Spell.commonCardinal Greek.Spell.DescendingJuxtapose inf.case_ inf.gender)
+                         |> Maybe.map Greek.Spell.renderWords
+                         |> Maybe.map (\w -> [Word w])
+                         ))
+            , tr [] (maybeRow trn n (label trn.ordinalDesc)
+                         [text (Inflection.renderInflectionEn {case_=Just inf.case_, gender=Just inf.gender, number=Just inf.number})]
+                         (\x -> bigIntToInt x
+                         |> Maybe.andThen (Greek.Spell.commonOrdinal inf.case_ inf.gender inf.number)
                          |> Maybe.map Greek.Spell.renderWords
                          |> Maybe.map (\w -> [Word w])
                          ))
             , tr [] (maybeRow trn n (label trn.adverbial)
+                         []
                          (\x -> bigIntToInt x
                          |> Maybe.andThen (Greek.Spell.commonAdverb)
                          |> Maybe.map Greek.Spell.renderWords
                          |> Maybe.map (\w -> [Word w])
                          ))
             , tr [] (maybeRow trn n (label trn.plous)
+                         [text (Inflection.renderInflectionEn {case_=Just inf.case_, gender=Just inf.gender, number=Just inf.number})]
                          (\x -> bigIntToInt x
-                         |> Maybe.andThen (Greek.Spell.plous Nominative Masculine Singular)
+                         |> Maybe.andThen (Greek.Spell.plous inf.case_ inf.gender inf.number)
                          |> Maybe.map Greek.Spell.renderWords
                          |> Maybe.map (\w -> [Word w])
                          ))
-            , tr [] (maybeRow trn n (label trn.attic) (Attic.toAttic Attic.generalSymbols))
+            , tr [] (maybeRow trn n (label trn.attic) [] (Attic.toAttic Attic.generalSymbols))
             , tr [] (ionianRowCommon (label trn.commonIonian) (Ionian.toMyriads True))
             , tr [] (ionianRow (label trn.diophantus) (Ionian.toDiophantus True))
             , tr [] (ionianRow (label trn.aristarchus) (Ionian.toAristarchus True))
             , tr [] (ionianRow (label trn.apollonius) (Ionian.toApollonius True))
             , tr [] (ionianRow (label trn.modifiedApollonius) (Ionian.toModifiedApollonius True))
             , tr [] (maybeRow trn n (label trn.apolloniusSpelledOut)
-                         (\x -> Greek.Spell.apollonius Nominative x
+                         [text (Inflection.renderInflectionEn {case_=Just inf.case_, gender=Nothing, number=Nothing})]
+                         (\x -> Greek.Spell.apollonius inf.case_ x
                          |> Maybe.map Greek.Spell.renderWords
                          |> Maybe.map (\w -> [Word w])
                          ))
@@ -399,9 +445,9 @@ viewFracTable : Translations -> Maybe Frac -> Html msg
 viewFracTable trn n =
     let fracRow l f =
             case n |> Maybe.andThen f of
-                Nothing -> row [l] [text ""]
-                Just (c, False) -> row [l] (viewElements c)
-                Just (c, True) -> row [l, text trn.extended] (viewElements c) in
+                Nothing -> row [l] [] [text ""]
+                Just (c, False) -> row [l] [] (viewElements c)
+                Just (c, True) -> row [l, text trn.extended] [] (viewElements c) in
     let body =
             [ tr [] (origElemRow trn (Maybe.map Fraction.toElements n |> Maybe.withDefault []))
             , tr [] (fracRow (label trn.fracDiophantus) Greek.Fraction.toDiophantus)
@@ -417,8 +463,8 @@ viewSgTable trn n =
     let body =
             [ tr [] (origRow trn (Maybe.map Sexagesimal.toString n |> Maybe.withDefault ""))
             , tr [] (calcRow st (label trn.sexagesimalTriple) (\np -> ([], [viewSexagesimal np])))
-            , tr [] (maybeRow trn st (label trn.sexagesimal) (Greek.Sexagesimal.toCommon))
-            , tr [] (maybeRow trn st (label trn.sexagesimalPtolemy) (Greek.Sexagesimal.toPtolemy))
+            , tr [] (maybeRow trn st (label trn.sexagesimal) [] (Greek.Sexagesimal.toCommon))
+            , tr [] (maybeRow trn st (label trn.sexagesimalPtolemy) [] (Greek.Sexagesimal.toPtolemy))
             ] in
     table [style "width" "100%"]
         [ tbody [] body

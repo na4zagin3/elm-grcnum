@@ -6,6 +6,7 @@ import Digits
 import Html exposing (Html, Attribute, a, button, div, input, table, tbody, td, tr, text, span, wbr)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
+import Inflection exposing (Number(..), Case(..), Gender(..))
 import Maybe.Extra
 import Prim exposing (..)
 import Regex
@@ -15,9 +16,6 @@ type CardinalOrder =
     | Descending
     | DescendingJuxtapose
 
-type Number = Singular | Plural
-type Case = Nominative | Genitive | Dative | Accusative
-type Gender = Masculine | Neuter | Feminine
 type Position = Final | Accented | Normal
 
 type alias Noun = Case -> Number -> Position -> String
