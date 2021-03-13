@@ -8,7 +8,7 @@ import Greek.Ionian as Ionian
 import Greek.Fraction
 import Greek.Sexagesimal
 import Greek.Spell
-import Greek.Spell exposing (Gender(..), Case(..))
+import Greek.Spell exposing (Gender(..), Case(..), Number(..))
 import Fraction exposing (Frac(..))
 import Html exposing (Html, Attribute, a, button, div, input, table, tbody, td, tr, text, span, wbr)
 import Html.Attributes exposing (..)
@@ -55,6 +55,10 @@ reactorFlags =
           , cardinalSingMascDesc =
                 { href= Nothing
                 , label = "Cardinal (nominative masculine form, descending order)*"
+                }
+          , ordinalSingMascDesc =
+                { href= Nothing
+                , label = "Ordinal (nominative masculine form, descending order)*"
                 }
           , adverbial =
                 { href= Nothing
@@ -123,6 +127,7 @@ type alias Translations =
   , fractionFormat: String
   , experimentalNote: String
   , cardinalSingMascDesc: Label
+  , ordinalSingMascDesc: Label
   , adverbial: Label
   , attic: Label
   , commonIonian: Label
@@ -330,7 +335,7 @@ viewNumTable trn n =
                 Just np ->
                     case f np of
                         (c, False) -> row [l] (viewElements c)
-                        (c, True) -> row [l] [text trn.tooBig] in
+                        (, True) -> row [l] [text trn.tooBig] in
     let ionianRow l f =
             case n of
                 Nothing -> row [l] [text ""]
@@ -343,6 +348,12 @@ viewNumTable trn n =
             , tr [] (maybeRow trn n (label trn.cardinalSingMascDesc)
                          (\x -> bigIntToInt x
                          |> Maybe.andThen (Greek.Spell.commonCardinal Nominative Masculine)
+                         |> Maybe.map Greek.Spell.renderWords
+                         |> Maybe.map (\w -> [Word w])
+                         ))
+            , tr [] (maybeRow trn n (label trn.ordinalSingMascDesc)
+                         (\x -> bigIntToInt x
+                         |> Maybe.andThen (Greek.Spell.commonOrdinal Nominative Masculine Singular)
                          |> Maybe.map Greek.Spell.renderWords
                          |> Maybe.map (\w -> [Word w])
                          ))

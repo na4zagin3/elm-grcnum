@@ -228,21 +228,59 @@ deaccentPairs =
     , ("ΰῢ", "ϋ")
     ]
 
+toGravePairs =
+    [ ("ά", "ὰ")
+    , ("ᾴ", "ᾲ")
+    , ("ή", "ὴ")
+    , ("ῄ", "ῂ")
+    , ("ώ", "ὼ")
+    , ("ῴ", "ῲ")
+    , ("ί", "ὶ")
+    , ("ύ", "ὺ")
+    , ("έ", "ὲ")
+    , ("ό", "ὸ")
+    , ("ἄ", "ἂ")
+    , ("ᾄ", "ᾂ")
+    , ("ἤ", "ἢ")
+    , ("ᾔ", "ᾒ")
+    , ("ὤ", "ὢ")
+    , ("ᾤ", "ᾢ")
+    , ("ἴ", "ἲ")
+    , ("ὔ", "ὒ")
+    , ("ἔ", "ἒ")
+    , ("ὄ", "ὂ")
+    , ("ἅ", "ἃ")
+    , ("ᾅ", "ᾃ")
+    , ("ἥ", "ἣ")
+    , ("ᾕ", "ᾓ")
+    , ("ὥ", "ὣ")
+    , ("ᾥ", "ᾣ")
+    , ("ἵ", "ἳ")
+    , ("ὕ", "ὓ")
+    , ("ἕ", "ἓ")
+    , ("ὅ", "ὃ")
+    , ("ΐ", "ῒ")
+    , ("ΰ", "ῢ")
+    ]
 
-
-deaccentReplacer m =
-        let s = m.match in
-        case List.filter (\(pat, r) -> String.contains s pat) deaccentPairs |> List.head of
-            Nothing -> s
-            Just (_, r) -> r
-
-deaccent : String -> String
-deaccent str =
-    let patten = "[" ++ (List.map (\(pat,_) -> pat) deaccentPairs |> String.join "") ++ "]" in
+replace : List (String, String) -> String -> String
+replace pairs str =
+    let replacer m =
+            let s = m.match in
+            case List.filter (\(pat, r) -> String.contains s pat) pairs |> List.head of
+                Nothing -> s
+                Just (_, r) -> r in
+    let patten = "[" ++ (List.map (\(pat,_) -> pat) pairs |> String.join "") ++ "]" in
     case Regex.fromString patten of
         Nothing -> str
         Just regex ->
-            Regex.replace regex deaccentReplacer str
+            Regex.replace regex replacer str
+
+deaccent : String -> String
+deaccent = replace deaccentPairs
+
+toGrave : String -> String
+toGrave = replace toGravePairs
 
 dropMovableNu : String -> String
 dropMovableNu str =
@@ -292,6 +330,42 @@ vowelStemIos ss ls c g n p =
         (Accusative, Feminine, Plural) -> ls ++ "ίας"
         (Genitive, Feminine, Plural) -> ls ++ "ίων"
         (Dative, Feminine, Plural) ->  ls ++ "ίαις"
+
+vowelStemOs : Bool -> String -> String -> Adjective
+vowelStemOs a ss ls c g n p =
+    let e s =
+            if a
+            then if accented p then s else toGrave s
+            else deaccent s in
+
+    case (c, g, n) of
+        (Nominative, Masculine, Singular) -> ss ++ e "ός"
+        (Accusative, Masculine, Singular) -> ss ++ e "όν"
+        (Nominative, Neuter, Singular) -> ss ++ e "όν"
+        (Accusative, Neuter, Singular) -> ss ++ e "όν"
+        (Genitive, Masculine, Singular) -> ls ++ e "οῦ"
+        (Genitive, Neuter, Singular) -> ls ++ e "οῦ"
+        (Dative, Masculine, Singular) -> ls ++ e "ῷ"
+        (Dative, Neuter, Singular) ->  ls ++ e "ῷ"
+
+        (Nominative, Feminine, Singular) -> ls ++ e "ή"
+        (Accusative, Feminine, Singular) -> ls ++ e "ήν"
+        (Genitive, Feminine, Singular) -> ls ++ e "ῆς"
+        (Dative, Feminine, Singular) ->  ls ++ e "ῇ"
+
+        (Nominative, Masculine, Plural) -> ss ++ e "οί"
+        (Accusative, Masculine, Plural) -> ls ++ e "ούς"
+        (Nominative, Neuter, Plural) -> ss ++ e "ά"
+        (Accusative, Neuter, Plural) -> ss ++ e "ά"
+        (Genitive, Masculine, Plural) -> ls ++ e "ῶν"
+        (Genitive, Neuter, Plural) -> ls ++ e "ῶν"
+        (Dative, Masculine, Plural) -> ls ++ e "οῖς"
+        (Dative, Neuter, Plural) ->  ls ++ e "οῖς"
+
+        (Nominative, Feminine, Plural) -> ss ++ e "αί"
+        (Accusative, Feminine, Plural) -> ls ++ e "άς"
+        (Genitive, Feminine, Plural) -> ls ++ e "ῶν"
+        (Dative, Feminine, Plural) ->  ls ++ e "αῖς"
 
 cai : Word
 cai =
@@ -416,6 +490,34 @@ commonCardinalFromDigits c g n =
         -- [_,_,_,_, _,_,_,_] -> compound ()
         _ -> Nothing
 
+commonOrdinalFromDigits : Case -> Gender -> Number -> List Int -> Maybe (List Word)
+commonOrdinalFromDigits c g nu n =
+    let w a ss ls = vowelStemOs a ss ls c g nu |> Word in
+    let reorder xs =
+            List.filterMap identity xs
+            |> List.intersperse [cai]
+            |> List.concat
+    in
+    let digit zeros x =
+            if x == 0
+            then Just Nothing
+            else
+              x :: (List.repeat zeros 0)
+              |> commonCardinalFromDigits c g
+              |> Maybe.map Just
+    in
+    let compound () =
+            let f (i, d) = digit i d in
+            List.indexedMap digit (List.reverse n)
+                |> maybesToList
+                |> Maybe.map (reorder)
+    in
+    case n of
+        [1] -> Just [w False "πρῶτ" "πρώτ"]
+        [2] -> Just [w False "δεύτερ" "δευτέρ"]
+        [3] -> Just [w False "τρίτ" "τρίτ"]
+        [4] -> Just [w False "τέταρτ" "τετάρτ"]
+        _ -> Nothing
 maybesToList : List (Maybe a) -> Maybe (List a)
 maybesToList =
     let sub acc xs =
@@ -482,6 +584,11 @@ commonCardinal : Case -> Gender -> Int -> Maybe (List Word)
 commonCardinal c g n =
     Digits.explodeIntoDigits n
     |> commonCardinalFromDigits c g
+
+commonOrdinal : Case -> Gender -> Number -> Int -> Maybe (List Word)
+commonOrdinal c g nu n =
+    Digits.explodeIntoDigits n
+    |> commonOrdinalFromDigits c g nu
 
 commonAdverb : Int -> Maybe (List Word)
 commonAdverb n =

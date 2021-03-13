@@ -2,7 +2,7 @@ module Greek.SpellSpec exposing (..)
 
 import BigInt
 import Dict exposing (Dict)
-import Greek.Spell exposing (Gender(..), Case(..))
+import Greek.Spell exposing (Gender(..), Case(..), Number(..))
 import Expect exposing (Expectation, pass, fail)
 import Fuzz exposing (Fuzzer, int, list, string, tuple, tuple3)
 import Test exposing (..)
@@ -102,6 +102,53 @@ commonCardinalNomMasc = Dict.fromList
     -- , (1230000, "τρισμύριοι καὶ εἰκοσακισμύριοι καὶ ἑκατοντακισμύριοι")
     ]
 
+commonOrdinalNomMasc : Dict Int String
+commonOrdinalNomMasc = Dict.fromList
+    [ (1, "πρῶτος")
+    , (2, "δεύτερος")
+    , (3, "τρίτος")
+    , (4, "τέταρτος")
+    -- , (5, "πέμπτος")
+    -- , (6, "ἕκτος")
+    -- , (7, "ἕβδομος")
+    -- , (8, "ὄγδοος")
+    -- , (9, "ἔνατος")
+    -- , (10, "δέκατος")
+    -- , (11, "ἑνδέκατος")
+    -- , (12, "δωδέκατος")
+    -- , (13, "τρίτος καὶ δέκατος")
+    -- , (14, "τέταρτος καὶ δέκατος")
+    -- , (15, "πέμπτος καὶ δέκατος")
+    -- , (16, "ἕκτος καὶ δέκατος")
+    -- , (17, "ἕβδομος καὶ δέκατος")
+    -- , (18, "ὄγδοος καὶ δέκατος")
+    -- , (19, "ἔνατος καὶ δέκατος")
+    -- , (20, "εἰκοστός")
+    -- , (21, "πρῶτος καὶ εἰκοστός")
+    -- , (30, "τριᾱκοστός")
+    -- , (40, "τετταρακοστός")
+    -- , (50, "πεντηκοστός")
+    -- , (60, "ἑξηκοστός")
+    -- , (70, "ἑβδομηκοστός")
+    -- , (80, "ὀγδοηκοστός")
+    -- , (90, "ἐνενηκοστός")
+    -- , (100, "ἑκατοστός")
+    -- , (200, "διᾱκοσιοστός")
+    -- , (300, "τριᾱκοσιοστός")
+    -- , (400, "τετρακοσιοστός")
+    -- , (500, "πεντακοσιοστός")
+    -- , (600, "ἑξακοσιοστός")
+    -- , (700, "ἑπτακοσιοστός")
+    -- , (800, "ὀκτακοσιοστός")
+    -- , (900, "ἐνακοσιοστός")
+    -- , (1000, "χιλῑστός")
+    -- , (2000, "δισχῑλιοστός")
+    -- , (3000, "τρισχῑλιοστός")
+    -- , (10000, "μῡριοστός")
+    -- , (20000, "δισμῡριοστός")
+    -- , (100000, "δεκακισμῡριοστός")
+    ]
+
 suite : Test
 suite =
     describe "Greek.Spell"
@@ -119,6 +166,14 @@ suite =
                     commonCardinalNomMasc
                     |> Dict.map (\k _ -> Greek.Spell.commonCardinal Nominative Masculine k |> Maybe.map Greek.Spell.renderWords)
                     |> Expect.equalDicts (Dict.map (\_ -> Just) commonCardinalNomMasc)
+              ]
+
+        , describe "Greek.Spell.commonOrdinal"
+              [ test "test by golden set" <|
+                    \_ ->
+                    commonOrdinalNomMasc
+                    |> Dict.map (\k _ -> Greek.Spell.commonOrdinal Nominative Masculine Singular k |> Maybe.map Greek.Spell.renderWords)
+                    |> Expect.equalDicts (Dict.map (\_ -> Just) commonOrdinalNomMasc)
               ]
 
         ]
