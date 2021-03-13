@@ -210,23 +210,48 @@ type Msg
 one = BigInt.fromInt 1
 
 updateModelWithInput model newContent =
+  let words = String.split " " newContent in
+  let newValue = List.head words |> Maybe.withDefault "" in
+  let maybeNewInfl =
+          List.tail words
+              |> Maybe.withDefault []
+              |> String.join " "
+              |> Inflection.parseInflection
+  in
+  let updateInflection infl =
+          case maybeNewInfl of
+              Nothing -> infl
+
+              Just newInfl ->
+                  { infl
+                      | number = Maybe.withDefault infl.number newInfl.number
+                      , gender = Maybe.withDefault infl.gender newInfl.gender
+                      , case_ = Maybe.withDefault infl.case_ newInfl.case_
+                  }
+  in
+  let updateInflectionModel mod =
+          {mod | declension = updateInflection model.declension}
+  in
   case model.content of
       NumInt _ ->
-          case BigInt.fromIntString newContent of
+          case BigInt.fromIntString newValue of
               Just n ->
                   { model | content = Just n |> NumInt }
+                      |> updateInflectionModel
               Nothing ->
                   { model | content = Nothing |> NumInt}
       NumFrac _ ->
-          case Fraction.fromString newContent of
+          case Fraction.fromString newValue of
               Just n ->
                   { model | content = Just n |> NumFrac }
+                      |> updateInflectionModel
               Nothing ->
                   { model | content = Nothing |> NumFrac }
       NumSg _ ->
-          case Sexagesimal.fromString newContent of
+          case Sexagesimal.fromString newValue of
               Just n ->
                   { model | content = Just n |> NumSg }
+                      |> updateInflectionModel
               Nothing ->
                   { model | content = Nothing |> NumSg }
 
