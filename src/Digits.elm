@@ -1,5 +1,5 @@
 module Digits exposing (Myriads, SexagesimalTriple, explodeIntoDigits, explodeIntoMyriads, explodeIntoSexagesimalTriple,
-                            explodeBigIntBy)
+                            explodeBigIntBy, zero)
 
 import BigInt
 import Dict

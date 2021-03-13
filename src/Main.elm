@@ -88,6 +88,10 @@ reactorFlags =
                 { href = Just "#modified-apollonius"
                 , label = "Modified Apollonius"
                 }
+          , apolloniusSpelledOut =
+                { href = Just "#aristarchus"
+                , label = "Apollonius (spelled out)"
+                }
           , fracDiophantus =
                 { href = Just "#fraction-diophantus"
                 , label = "Diophantus"
@@ -135,6 +139,7 @@ type alias Translations =
   , aristarchus: Label
   , apollonius: Label
   , modifiedApollonius: Label
+  , apolloniusSpelledOut: Label
   , fracDiophantus: Label
   , fracHeron: Label
   , sexagesimalTriple: Label
@@ -369,6 +374,11 @@ viewNumTable trn n =
             , tr [] (ionianRow (label trn.aristarchus) (Ionian.toAristarchus True))
             , tr [] (ionianRow (label trn.apollonius) (Ionian.toApollonius True))
             , tr [] (ionianRow (label trn.modifiedApollonius) (Ionian.toModifiedApollonius True))
+            , tr [] (maybeRow trn n (label trn.apolloniusSpelledOut)
+                         (\x -> Greek.Spell.apollonius Nominative x
+                         |> Maybe.map Greek.Spell.renderWords
+                         |> Maybe.map (\w -> [Word w])
+                         ))
             ] in
     table [style "width" "100%"]
         [ tbody [] body

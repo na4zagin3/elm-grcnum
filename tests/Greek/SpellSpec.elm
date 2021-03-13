@@ -149,6 +149,34 @@ commonOrdinalNomMasc = Dict.fromList
     , (100000, "δεκακισμυριοστός")
     ]
 
+plousNomMasc : Dict Int String
+plousNomMasc = Dict.fromList
+    [ (1, "ἁπλοῦς")
+    , (2, "διπλοῦς")
+    , (3, "τριπλοῦς")
+    , (4, "τετραπλοῦς")
+    , (5, "πενταπλοῦς")
+    , (6, "ἑξαπλοῦς")
+    , (7, "ἑπταπλοῦς")
+    , (8, "ὀκταπλοῦς")
+    -- , (9, "ἐνάπλοῦς")
+    , (10, "δεκαπλοῦς")
+    ]
+
+apolloniusNomMasc : Dict String String
+apolloniusNomMasc = Dict.fromList
+    [ ("1", "μονὰς μία")
+    , ("2", "μονάδες δύο")
+    , ("10", "μονάδες δέκα")
+    , ("10000", "ἁπλαῖ μυριάδες μία")
+    , ("10001", "ἁπλαῖ μυριάδες μία καὶ μονὰς μία")
+    , ("10101", "ἁπλαῖ μυριάδες μία καὶ μονάδες ἑκατὸν μία")
+    , ("20000", "ἁπλαῖ μυριάδες δύο")
+    , ("20001", "ἁπλαῖ μυριάδες δύο καὶ μονὰς μία")
+    , ("20101", "ἁπλαῖ μυριάδες δύο καὶ μονάδες ἑκατὸν μία")
+    , ("100000", "ἁπλαῖ μυριάδες δέκα")
+    ]
+
 suite : Test
 suite =
     describe "Greek.Spell"
@@ -174,6 +202,25 @@ suite =
                     commonOrdinalNomMasc
                     |> Dict.map (\k _ -> Greek.Spell.commonOrdinal Nominative Masculine Singular k |> Maybe.map Greek.Spell.renderWords)
                     |> Expect.equalDicts (Dict.map (\_ -> Just) commonOrdinalNomMasc)
+              ]
+
+        , describe "Greek.Spell.plous"
+              [ test "test by golden set" <|
+                    \_ ->
+                    plousNomMasc
+                    |> Dict.map (\k _ -> Greek.Spell.plous Nominative Masculine Singular k |> Maybe.map Greek.Spell.renderWords)
+                    |> Expect.equalDicts (Dict.map (\_ -> Just) plousNomMasc)
+              ]
+
+        , describe "Greek.Spell.apollonius"
+              [ test "test by golden set" <|
+                    \_ ->
+                    apolloniusNomMasc
+                    |> Dict.map (\k _ ->
+                                     BigInt.fromIntString k
+                                |> Maybe.andThen (Greek.Spell.apollonius Nominative)
+                                |> Maybe.map Greek.Spell.renderWords)
+              |> Expect.equalDicts (Dict.map (\_ -> Just) apolloniusNomMasc)
               ]
 
         ]

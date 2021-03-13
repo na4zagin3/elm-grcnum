@@ -16,14 +16,14 @@
             "elm/random": "1.0.0",
             "elm/regex": "1.0.0",
             "elm/time": "1.0.0",
-            "elm/url": "1.0.0"
+            "elm/url": "1.0.0",
+            "elm-community/maybe-extra": "5.2.0"
         },
         "indirect": {
             "elm/bytes": "1.0.3",
             "elm/file": "1.0.1",
             "elm/virtual-dom": "1.0.0",
             "elm-community/list-extra": "8.2.0",
-            "elm-community/maybe-extra": "5.0.0",
             "rtfeldman/elm-hex": "1.0.0"
         }
     },

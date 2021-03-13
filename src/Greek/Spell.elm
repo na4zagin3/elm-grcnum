@@ -6,6 +6,7 @@ import Digits
 import Html exposing (Html, Attribute, a, button, div, input, table, tbody, td, tr, text, span, wbr)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
+import Maybe.Extra
 import Prim exposing (..)
 import Regex
 
@@ -19,6 +20,7 @@ type Case = Nominative | Genitive | Dative | Accusative
 type Gender = Masculine | Neuter | Feminine
 type Position = Final | Accented | Normal
 
+type alias Noun = Case -> Number -> Position -> String
 type alias Adjective = Case -> Gender -> Number -> Position -> String
 type alias Adverb = Position -> String
 
@@ -42,6 +44,54 @@ animate g = case g of
 
 movableNu : String
 movableNu = "(ν)"
+
+adP : String -> Noun
+adP pf c n p =
+    let a = accented p in
+    pf ++ case (c, n) of
+        (Nominative, Singular) -> if a then "άς" else "ὰς"
+        (Nominative, Plural) -> "άδες"
+        (Genitive, Singular) -> "άδος"
+        (Genitive, Plural) -> "άδων"
+        (Dative, Singular) -> "άδι"
+        (Dative, Plural) -> "άδσι" ++ movableNu
+        (Accusative, Singular) -> "άδα"
+        (Accusative, Plural) -> "άδες"
+
+monad : Noun
+monad = adP "μον"
+
+myriad : Noun
+myriad = adP "μυρι"
+
+plousP : String -> Adjective
+plousP pf c g n _ =
+    pf ++ case (c, g, n) of
+        (Nominative, Masculine, Singular) -> "πλοῦς"
+        (Accusative, Masculine, Singular) -> "πλοῦν"
+        (Nominative, Neuter, Singular) -> "πλοῦν"
+        (Accusative, Neuter, Singular) -> "πλοῦν"
+        (Genitive, Masculine, Singular) -> "πλοῦ"
+        (Genitive, Neuter, Singular) -> "πλοῦ"
+        (Dative, Masculine, Singular) -> "πλῷ"
+        (Dative, Neuter, Singular) -> "πλῷ"
+        (Nominative, Feminine, Singular) -> "πλῆ"
+        (Accusative, Feminine, Singular) -> "πλῆν"
+        (Genitive, Feminine, Singular) -> "πλῆς"
+        (Dative, Feminine, Singular) -> "πλῇ"
+
+        (Nominative, Masculine, Plural) -> "πλοῖ"
+        (Accusative, Masculine, Plural) -> "πλοῦς"
+        (Nominative, Neuter, Plural) -> "πλᾶ"
+        (Accusative, Neuter, Plural) -> "πλᾶ"
+        (Genitive, Masculine, Plural) -> "πλῶν"
+        (Genitive, Neuter, Plural) -> "πλῶν"
+        (Dative, Masculine, Plural) -> "πλοῖς"
+        (Dative, Neuter, Plural) -> "πλοῖς"
+        (Nominative, Feminine, Plural) -> "πλαῖ"
+        (Accusative, Feminine, Plural) -> "πλᾶς"
+        (Genitive, Feminine, Plural) -> "πλῶν"
+        (Dative, Feminine, Plural) -> "πλαῖς"
 
 heis : Adjective
 heis c g n p =
@@ -570,6 +620,7 @@ commonOrdinalFromDigits c g nu n =
         [_,_,_,_, 0,0,0,0] -> fromCardinal ostos -1
         [_,_,_,_, _,_,_,_] -> compound ()
         _ -> Nothing
+
 maybesToList : List (Maybe a) -> Maybe (List a)
 maybesToList =
     let sub acc xs =
@@ -632,6 +683,36 @@ commonAdverbFromDigits n =
         [_,_,_,_, _,_,_,_] -> compound ()
         _ -> Nothing
 
+plousFromDigits : Case -> Gender -> Number -> List Int -> Maybe (List Word)
+plousFromDigits c g nu n =
+    let fromAdverb t =
+            case commonAdverbFromDigits n |> Maybe.map renderWords of
+                Nothing -> Nothing
+                Just p -> Just [plousP (p |> deaccent |> String.slice 0 t) c g nu |> Word] in
+    let digit zeros x =
+            if x == 0
+            then Just Nothing
+            else
+              x :: (List.repeat zeros 0)
+              |> commonAdverbFromDigits
+              |> Maybe.map Just
+    in
+    let compound () =
+            let f (i, d) = digit i d in
+            List.indexedMap digit (List.reverse n)
+            |> maybesToList
+            |> Maybe.map (List.filterMap identity)
+            |> Maybe.map (List.reverse)
+            |> Maybe.map (List.concat) in
+    case n of
+        [1] -> Just [plousP "ἁ" c g nu |> Word]
+        [2] -> fromAdverb -1
+        [3] -> fromAdverb -1
+        [_] -> fromAdverb -3
+        [1,_] -> fromAdverb -3
+        [_,0] -> fromAdverb -3
+        _ -> Nothing
+
 withDigits : (List Int -> Maybe a) -> Int -> Maybe a
 withDigits f n =
     if n > 0
@@ -649,10 +730,36 @@ commonOrdinal : Case -> Gender -> Number -> Int -> Maybe (List Word)
 commonOrdinal c g nu n =
     withDigits (commonOrdinalFromDigits c g nu) n
 
+plous : Case -> Gender -> Number -> Int -> Maybe (List Word)
+plous c g nu n =
+    withDigits (plousFromDigits c g nu) n
+
 commonAdverb : Int -> Maybe (List Word)
 commonAdverb n =
     withDigits commonAdverbFromDigits n
 
+apollonius : Case -> BigInt.BigInt -> Maybe (List Word)
+apollonius c num =
+    let rm = Digits.explodeIntoMyriads num |> List.reverse in
+    let renderMonad i d =
+            case (i, d, commonCardinal DescendingJuxtapose c Feminine d) of
+                (_, 0, _) -> if i >= 0 then Just [] else Nothing
+                (0, 1, Just coef) -> [monad c Singular |> Word] ++ coef |> Just
+                (0, _, Just coef) -> [monad c Plural |> Word] ++ coef |> Just
+                (_, _, Just coef) ->
+                    plous c Feminine Plural i
+                                  |> Maybe.map (\p -> p ++ [myriad c Plural |> Word] ++ coef)
+                (_, _, _) -> Nothing
+    in
+    if BigInt.gt num Digits.zero
+    then
+      List.indexedMap renderMonad rm
+      |> List.reverse
+      |> Maybe.Extra.combine
+      |> Maybe.map (List.filter (\xs -> xs /= []))
+      |> Maybe.map (List.intersperse [cai])
+      |> Maybe.map List.concat
+    else Nothing
 
 type Word = Word (Position -> String) | Enclitic (Position -> String) | Punctation String
 renderWords ws = renderWordsSub [] ws
@@ -674,3 +781,4 @@ renderWordsSub acc words =
                (Word w, Punctation _) -> renderWordsSub (w Final::acc) ws
                (Enclitic w, Punctation _) -> renderWordsSub (w Final::acc) ws
                (Punctation w, _) -> renderWordsSub (w::acc) ws
+
