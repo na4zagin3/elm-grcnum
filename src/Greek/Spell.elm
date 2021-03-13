@@ -632,20 +632,26 @@ commonAdverbFromDigits n =
         [_,_,_,_, _,_,_,_] -> compound ()
         _ -> Nothing
 
+withDigits : (List Int -> Maybe a) -> Int -> Maybe a
+withDigits f n =
+    if n > 0
+    then let exploded = Digits.explodeIntoDigits n in
+         if List.all (\x -> x >= 0) exploded
+         then f exploded
+         else Nothing
+    else Nothing
+
 commonCardinal : CardinalOrder -> Case -> Gender -> Int -> Maybe (List Word)
 commonCardinal co c g n =
-    Digits.explodeIntoDigits n
-    |> commonCardinalFromDigits co c g
+    withDigits (commonCardinalFromDigits co c g) n
 
 commonOrdinal : Case -> Gender -> Number -> Int -> Maybe (List Word)
 commonOrdinal c g nu n =
-    Digits.explodeIntoDigits n
-    |> commonOrdinalFromDigits c g nu
+    withDigits (commonOrdinalFromDigits c g nu) n
 
 commonAdverb : Int -> Maybe (List Word)
 commonAdverb n =
-    Digits.explodeIntoDigits n
-    |> commonAdverbFromDigits
+    withDigits commonAdverbFromDigits n
 
 
 type Word = Word (Position -> String) | Enclitic (Position -> String) | Punctation String
