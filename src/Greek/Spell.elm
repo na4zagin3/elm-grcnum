@@ -550,11 +550,13 @@ commonCardinalFromDigits co c g n =
         [x, 0,0,0,0] -> fromAdverb myrioiS [x]
         [_, _,_,_,_] -> compound ()
         [x,0, 0,0,0,0] -> fromAdverb myrioiS [x,0]
-        -- [_,_, _,_,_,_] -> compound ()
-        -- [x,0,0, 0,0,0,0] -> fromAdverb myrioiS [x,0,0]
-        -- [_,_,_, _,_,_,_] -> compound ()
-        -- [x,0,0,0, 0,0,0,0] -> fromAdverb myrioiS [x,0,0,0]
-        -- [_,_,_,_, _,_,_,_] -> compound ()
+        [_,_, _,_,_,_] -> compound ()
+        [x,0,0, 0,0,0,0] -> fromAdverb myrioiS [x,0,0]
+        [_,_,_, _,_,_,_] -> compound ()
+        [x,0,0,0, 0,0,0,0] -> fromAdverb myrioiS [x,0,0,0]
+        [_,_,_,_, _,_,_,_] -> compound ()
+        [1, 0,0,0,0, 0,0,0,0] -> fromAdverb myrioiS [1, 0,0,0,0]
+        [1, _,_,_,_, _,_,_,_] -> compound ()
         _ -> Nothing
 
 commonOrdinalFromDigits : Case -> Gender -> Number -> List Int -> Maybe (List Word)
@@ -619,6 +621,8 @@ commonOrdinalFromDigits c g nu n =
         [_,_,_, _,_,_,_] -> compound ()
         [_,_,_,_, 0,0,0,0] -> fromCardinal ostos -1
         [_,_,_,_, _,_,_,_] -> compound ()
+        [1, _,_,_,_, 0,0,0,0] -> fromCardinal ostos -1
+        [1, _,_,_,_, _,_,_,_] -> compound ()
         _ -> Nothing
 
 maybesToList : List (Maybe a) -> Maybe (List a)
