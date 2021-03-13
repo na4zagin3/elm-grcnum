@@ -22,11 +22,11 @@ jobs:
 
       - name: Install elm-test
         run: |
-          npm install -g elm-test
+          npm install elm-test
           
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Run tests
         run: |
-          elm-test
+          npx elm-test
